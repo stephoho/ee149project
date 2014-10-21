@@ -1,4 +1,8 @@
 ee149project
 ============
 
-Semester project for ee149 Embedded Systems 
+Project Title: 
+Team: Emily Chen, Stephanie Ho, Johnny Shen
+UC Berkeley, Fall 2014
+
+Description: Semester project for EE149/249A Introduction to Embedded Systems 
