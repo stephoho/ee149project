@@ -21,4 +21,14 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    // support libraries
+    compile 'com.android.support:support-v4:21.+'
+    compile 'com.android.support:appcompat-v7:21.+'
+
+    // other libraries
+    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.koushikdutta.async:androidasync:1.+'
+    compile 'joda-time:joda-time:2.5'
 }

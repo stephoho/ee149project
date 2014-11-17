@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/tvNotificationAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="@string/hello_world"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvNotificationContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvNotificationAppName"
+        android:layout_marginLeft="10dp"
+        android:text="@string/content_placeholder"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/tvNotificationTime"
+        android:paddingTop="10dp"
+        android:paddingRight="10dp"
+        android:layout_alignParentRight="true"
+        android:text="@string/time_placeholder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>

@@ -3,6 +3,8 @@
 
     <string name="app_name">Block</string>
     <string name="hello_world">Hello world!</string>
+    <string name="time_placeholder">[TIME]</string>
+    <string name="content_placeholder">[SOME INFORMATION HERE]</string>
     <string name="action_settings">Settings</string>
 
 </resources>
