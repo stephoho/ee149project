@@ -40,4 +40,9 @@ public class NotificationAdapter extends ArrayAdapter<BlockNotification> {
         return convertView;
     }
 
+    public void update(BlockNotification newNotif) {
+        add(newNotif);
+        notifyDataSetChanged();
+    }
+
 }

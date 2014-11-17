@@ -1,7 +1,14 @@
 package com.eecs149.block;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
+import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -11,9 +18,9 @@ import java.util.ArrayList;
 public class MainActivity extends Activity {
 
     private ListView lvNotifications;
-    private ArrayAdapter adapterNotifs;
+    private NotificationAdapter adapterNotifs;
 
-
+    private NotificationReceiver nReceiver;
 
 
     @Override
@@ -26,8 +33,37 @@ public class MainActivity extends Activity {
         adapterNotifs = new NotificationAdapter(this, blockNotifsList);
         lvNotifications.setAdapter(adapterNotifs);
 
-        // start reading notifications
+        // set receiver
+        nReceiver = new NotificationReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ActivityUtils.NOTIFICATION_CHANGED);
+        registerReceiver(nReceiver, filter);
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(nReceiver);
+    }
+
+    public void getNotifications(View view) {
+        Log.i(ActivityUtils.APP_TAG, "GRABBING NOTIFICATIONS");
+        Intent intent = new Intent(ActivityUtils.FILTER_ACTION);
+        intent.putExtra(ActivityUtils.NLS_COMMAND, ActivityUtils.GET_NOTIFS);
+        sendBroadcast(intent);
+    }
+
+    class NotificationReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // add to adapter.
+            // TODO : does not yet support removing from list
+            Log.i(ActivityUtils.APP_TAG, "Received new item from NLService");
+            StatusBarNotification sbn = intent.getParcelableExtra(ActivityUtils.EXTRA_NEW_NOTIF);
+            BlockNotification newBlockNotif = new BlockNotification(sbn.getPackageName(), "", sbn.getPostTime());
+            adapterNotifs.update(newBlockNotif);
+        }
     }
 
 

@@ -15,10 +15,10 @@ public class BlockNotification {
     private String appName;
     private DateTime time;
 
-    public BlockNotification() {
-        content = "";
-        appName = "";
-        time = new DateTime();
+    public BlockNotification(String app, String content, long timePosted ) {
+        content = ""; //TODO
+        appName = app;
+        time = new DateTime(timePosted);
     }
 
     public String getContent() {

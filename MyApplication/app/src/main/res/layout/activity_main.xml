@@ -23,9 +23,15 @@
         android:scaleType="centerInside"
         android:src="@drawable/title_placeholder" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="getNotifications"
+        android:text="Grab Notifications" />
+
     <ListView
         android:id="@+id/lvNotifications"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
