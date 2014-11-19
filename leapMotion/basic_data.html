@@ -1,0 +1,46 @@
+<html>
+<head>
+</head>
+
+<body>
+<h1> LeapMotion JS </h1>
+<div id="output"></div>
+
+</body>
+
+<script src="leap-beta1.min.js"></script>
+
+<script type="text/javascript">
+
+var output = document.getElementById('output');
+var frameID = "", numHands = "", numFingers = "";
+var hand, finger;
+
+var options = { enableGestures: true};
+
+Leap.loop(options, function(frame) {
+  string  = "Frame ID: "  + frame.id + "<br>"
+  string += "# Hands: "   + frame.hands.length + "<br>";
+  string += "# Fingers: " + frame.fingers.length + "<br>";
+
+  for (var i = 0, len = frame.hands.length; i < len; i++) {
+    hand = frame.hands[i];
+    string += "Hand Type: " + hand.type + "<br>";
+    string += "Pinching: " + hand.pinchStrength + "<br>";
+    string += "Grabbing: " + hand.grabStrength + "<br>";
+
+    var stabilized = hand.stabilizedPalmPosition;
+    var delta = Leap.vec3.create();
+    Leap.vec3.subtract(delta, stabilized, hand.palmPosition);
+
+    string += "X-Position: " + hand.palmPosition[0] + " +/- " + delta[0] + "<br>";
+    string += "Y-Position: " + hand.palmPosition[1] + " +/- " + delta[1] + "<br>";
+    string += "Z-Position: " + hand.palmPosition[2] + " +/- " + delta[2] + "<br>";
+  }
+
+  output.innerHTML = string;
+});
+
+</script>
+
+</html>
