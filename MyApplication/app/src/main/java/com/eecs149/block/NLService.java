@@ -32,6 +32,7 @@ public class NLService extends NotificationListenerService {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(nlServiceReceiver);
+        stopService(new Intent(this, NLService.class));
     }
 
 

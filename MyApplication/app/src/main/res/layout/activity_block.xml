@@ -23,11 +23,40 @@
         android:scaleType="centerInside"
         android:src="@drawable/title_placeholder" />
 
+    <TextView
+        android:id="@+id/tvDeviceName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/device_name_placeholder" />
+
+    <TextView
+        android:id="@+id/tvConnectionState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="@string/connection_state_placeholder" />
+
+    <TextView
+        android:id="@+id/tvDataField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="@string/content_placeholder" />
+
     <Button
+        android:id="@+id/btnConnectionToggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="getNotifications"
-        android:text="Grab Notifications" />
+        android:onClick="toggleConnection"
+        android:text="@string/action_disconnect"
+        android:visibility="visible" />
+    
+    <Button
+        android:id="@+id/btnSendColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="sendColor"
+        android:text="Send"/>
 
     <ListView
         android:id="@+id/lvNotifications"

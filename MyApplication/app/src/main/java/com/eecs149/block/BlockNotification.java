@@ -15,8 +15,8 @@ public class BlockNotification {
     private String appName;
     private DateTime time;
 
-    public BlockNotification(String app, String content, long timePosted ) {
-        content = ""; //TODO
+    public BlockNotification(String app, String cntnt, long timePosted) {
+        content = cntnt;
         appName = app;
         time = new DateTime(timePosted);
     }
@@ -35,6 +35,22 @@ public class BlockNotification {
 
     public String getTimeString() {
         return format.print(time);
+    }
+
+
+    // map app to color
+    public String getColor() {
+        if (appName.equals("Facebook")) {
+            return "blue";
+        } else if (appName.equals("Line")) {
+            return "green";
+        } else if (appName.equals("Gmail")) {
+            return "red";
+        } else if (appName.equals("Hangouts")) {
+            return "white";
+        } else {
+            return "";
+        }
     }
 
 
