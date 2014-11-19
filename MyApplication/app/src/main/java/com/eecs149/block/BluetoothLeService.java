@@ -85,8 +85,13 @@ public class BluetoothLeService extends Service {
             "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
-    public final static UUID UUID_HM_RX_TX =
-            UUID.fromString(GattAttributes.HM_RX_TX);
+//    public final static UUID UUID_HM_RX_TX =
+//            UUID.fromString(GattAttributes.HM_RX_TX);
+
+    public final static UUID UUID_nRF_TX = UUID.fromString(GattAttributes.nRF_TX);
+    public final static UUID UUID_nRF_RX = UUID.fromString(GattAttributes.nRF_RX);
+
+
 
 
     // Implements callback methods for GATT events that the app cares about.  For example,
@@ -325,8 +330,7 @@ public class BluetoothLeService extends Service {
 
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
         Log.i(ActivityUtils.APP_TAG, "### set setCharacteristicNotification");
-        // This is specific to Heart Rate Measurement.
-        if (UUID_HM_RX_TX.equals(characteristic.getUuid())) {
+        if (UUID_nRF_TX.equals(characteristic.getUuid())) {
             Log.i(ActivityUtils.APP_TAG, "### inside if statement setCharacteristicNotification");
 
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(

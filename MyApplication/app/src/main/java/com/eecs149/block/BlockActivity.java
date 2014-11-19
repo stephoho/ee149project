@@ -45,8 +45,8 @@ public class BlockActivity extends Activity {
 
     private NotificationReceiver notifReceiver;
 
-
-    public final static UUID HM_RX_TX = UUID.fromString(GattAttributes.HM_RX_TX);
+    public final static UUID UUID_nRF_TX = UUID.fromString(GattAttributes.nRF_TX);
+    public final static UUID UUID_nRF_RX = UUID.fromString(GattAttributes.nRF_RX);
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
@@ -189,12 +189,12 @@ public class BlockActivity extends Activity {
         String msg = getAppName(choice) + "\n";
         Log.d(ActivityUtils.APP_TAG, " ### Sending result=" + msg);
         final byte[] tx = msg.getBytes();
-        if (tx == null) {
-            Log.i(ActivityUtils.APP_TAG, "### STEPHANIE YOU MESSED UP");
-        } else {
+        if (connected) {
+            if (characteristicTX == null) {
+                Log.i(ActivityUtils.APP_TAG, "### STEPHANIE YOU MESSED UP");
+            } else {
             Log.i(ActivityUtils.APP_TAG, "### NOT NULL");
         }
-        if (connected) {
             characteristicTX.setValue(tx);
             btleService.writeCharacteristic(characteristicTX);
             btleService.setCharacteristicNotification(characteristicRX, true);
@@ -272,22 +272,28 @@ public class BlockActivity extends Activity {
         for (BluetoothGattService gattService : gattServices) {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
+            Log.i(ActivityUtils.APP_TAG, "### UUID CURRENT:" + uuid);
+            Log.i(ActivityUtils.APP_TAG, GattAttributes.lookup(uuid, unknownServiceString));
             currentServiceData.put(
                     LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
 
-            // If the service exists for HM 10 Serial, say so.
-            if (GattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
-                Log.i(ActivityUtils.APP_TAG, "### IS SERIAL! FOR REALL");
-            } else {
-                Log.i(ActivityUtils.APP_TAG, "### NOT SEREAL NO CEREAL FOR YOU");
-            }
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
-            // get characteristic when UUID matches RX/TX UUID
-            characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
-            characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+
+            if(GattAttributes.lookup(uuid, unknownServiceString) == "UART service UUID") {
+                currentServiceData.put(LIST_UUID, uuid);
+                gattServiceData.add(currentServiceData);
+
+                // get characteristic when UUID matches RX/TX UUID
+                characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_TX);
+                characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_RX);
+                Log.i(ActivityUtils.APP_TAG, "### iS NULL: "+ (characteristicTX == null));
+            }
+
         }
+
+
 
     }
 

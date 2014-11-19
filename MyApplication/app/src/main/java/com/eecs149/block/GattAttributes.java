@@ -17,6 +17,8 @@ package com.eecs149.block;
  * limitations under the License.
  */
 
+import android.util.Log;
+
 import java.util.HashMap;
 
 /**
@@ -25,20 +27,20 @@ import java.util.HashMap;
 public class GattAttributes {
     private static HashMap<String, String> attributes = new HashMap();
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
-    public static String HM_10_CONF = "0000ffe0-0000-1000-8000-00805f9b34fb";
-    public static String HM_RX_TX = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+    public static String UART_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+    public static String nRF_TX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+    public static String nRF_RX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 
     static {
-        // Sample Services.
-        attributes.put("0000ffe0-0000-1000-8000-00805f9b34fb", "HM 10 Serial");
-        attributes.put("00001800-0000-1000-8000-00805f9b34fb", "Device Information Service");
-        // Sample Characteristics.
-        attributes.put(HM_RX_TX, "RX/TX data");
-        attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
+        attributes.put(nRF_TX, "TX data");
+        attributes.put(nRF_RX, "RX data");
+        attributes.put(UART_SERVICE, "UART service UUID");
     }
 
     public static String lookup(String uuid, String defaultName) {
         String name = attributes.get(uuid);
+        Log.i(ActivityUtils.APP_TAG, "==== NAME: " + name);
         return name == null ? defaultName : name;
     }
 }
