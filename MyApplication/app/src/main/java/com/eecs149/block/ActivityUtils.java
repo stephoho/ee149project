@@ -17,4 +17,8 @@ public class ActivityUtils {
     public static final String GET_NOTIFS = "com.ee149.block.NLS.GETNOTIFS";
 
     public static final String EXTRA_NEW_NOTIF = "com.ee149.block.SBN_EXTRA";
+
+    public static final String EXTRAS_DEVICE_NAME= "com.ee149.block.DEVICE_NAME";
+
+    public static final String EXTRAS_DEVICE_ADDRESS = "com.ee149.block.DEVICE_ADDRESS";
 }
