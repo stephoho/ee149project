@@ -33,20 +33,21 @@ public class BlockNotification {
         return time;
     }
 
-    public String getTimeString() {
+    public String getTimgeString() {
         return format.print(time);
     }
 
 
     // map app to color
+    // TODO: map to ints instead
     public String getColor() {
-        if (appName.equals("Facebook")) {
+        if (appName.contains("facebook")){
             return "blue";
-        } else if (appName.equals("Line")) {
+        } else if (appName.contains("google") && appName.contains("talk")) {
             return "green";
-        } else if (appName.equals("Gmail")) {
+        } else if (appName.contains("google") && appName.contains("gm")) {
             return "red";
-        } else if (appName.equals("Hangouts")) {
+        } else if (appName.contains("naver") && appName.contains("line")) {
             return "white";
         } else {
             return "";

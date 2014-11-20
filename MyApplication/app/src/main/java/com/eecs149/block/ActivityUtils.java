@@ -18,11 +18,17 @@ public class ActivityUtils {
 
     public static final String GET_NOTIFS = "NLS.GETNOTIFS";
 
-    public static final String EXTRA_NEW_NOTIF = "com.ee149.block.SBN_EXTRA";
-
     public static final String EXTRAS_DEVICE_NAME = "com.ee149.block.DEVICE_NAME";
 
     public static final String EXTRAS_DEVICE_ADDRESS = "com.ee149.block.DEVICE_ADDRESS";
+
+    /// NLservice extras
+    public static final String EXTRA_NOTIF_PACKAGE_NAME = "com.ee149.block.SBN_PACKAGE_NAME";
+    public static final String EXTRA_NOTIF_WHEN = "com.ee149.block.NOTIF_WHEN";
+    public static final String EXTRA_NOTIF_CONTENT = "com.ee149.block.NOTIF_CONTENT";
+
+
+
 
     // bluetoothLeService
     public final static String ACTION_GATT_CONNECTED =

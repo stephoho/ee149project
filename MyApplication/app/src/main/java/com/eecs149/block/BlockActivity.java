@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -125,21 +124,15 @@ public class BlockActivity extends Activity {
         ArrayList<BlockNotification> blockNotifsList = new ArrayList<BlockNotification>();
         adapterNotifs = new NotificationAdapter(this, blockNotifsList);
         lvNotifications.setAdapter(adapterNotifs);
-//        getActionBar().setDisplayHomeAsUpEnabled(true); // no action bar for now
 
-        // set notifications receiver
-        notifReceiver = new NotificationReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ActivityUtils.NOTIFICATION_CHANGED);
-        registerReceiver(notifReceiver, filter);
 
         // start bluetooth service
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
 
         // start notification listener service
-//        Log.i(ActivityUtils.APP_TAG, "### ATTEMPTING TO START NLSERVICE");
-//        startService(new Intent(this, NLService.class));
+        Log.i(ActivityUtils.APP_TAG, "### ATTEMPTING TO START NLSERVICE");
+        startService(new Intent(this, NLService.class));
 
 
     }
@@ -147,13 +140,18 @@ public class BlockActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         if (btleService != null) {
             final boolean result = btleService.connect(deviceAddress);
             Log.d(ActivityUtils.APP_TAG, "onResume, Connection request= " + result);
         }
-        // TODO: same thing for notification listener
 
+        // set notifications receiver
+        notifReceiver = new NotificationReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ActivityUtils.NOTIFICATION_CHANGED);
+        registerReceiver(notifReceiver, filter);
     }
 
     @Override
@@ -186,35 +184,36 @@ public class BlockActivity extends Activity {
     // for testing
     public void sendColor(View view) {
         int choice = randInt(0, 4);
-        String msg = getAppName(choice) + "\n";
+        String msg = getAppName(choice).toLowerCase() + "\n";
         Log.d(ActivityUtils.APP_TAG, " ### Sending result=" + msg);
-        final byte[] tx = msg.getBytes();
-        if (connected) {
-            if (characteristicTX == null) {
-                Log.i(ActivityUtils.APP_TAG, "### STEPHANIE YOU MESSED UP");
-            } else {
-            Log.i(ActivityUtils.APP_TAG, "### NOT NULL");
+        byte[] tx = null;
+        try {
+            tx = msg.getBytes("UTF-8");
+        } catch (Exception e) {
+            Log.d(ActivityUtils.APP_TAG, "THIS THINGS SUCKS");
         }
+        if (connected) {
             characteristicTX.setValue(tx);
+            tvDataField.setText("SENT: " + choice);
             btleService.writeCharacteristic(characteristicTX);
             btleService.setCharacteristicNotification(characteristicRX, true);
         }
     }
 
     private String getAppName(int choice) {
-        switch(choice){
+        switch (choice) {
             case 0:
-                return "Facebook";
+                return "f";
             case 1:
-                return "Line";
+                return "l";
             case 2:
-                return "Gmail";
+                return "g";
             case 3:
-                return "Messenger";
+                return "m";
             case 4:
-                return "Hangouts";
+                return "h";
             default:
-                return "Facebook";
+                return "f";
         }
     }
 
@@ -237,9 +236,11 @@ public class BlockActivity extends Activity {
             // add to adapter.
             // TODO : does not yet support removing from list
             Log.i(ActivityUtils.APP_TAG, "Received new item from NLService");
-            StatusBarNotification sbn = intent.getParcelableExtra(ActivityUtils.EXTRA_NEW_NOTIF);
-            BlockNotification newBlockNotif = new BlockNotification(sbn.getPackageName(),
-                    sbn.getNotification().tickerText.toString(), sbn.getPostTime());
+            String packageName = intent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
+            String content = intent.getStringExtra(ActivityUtils.EXTRA_NOTIF_CONTENT);
+            long timeStamp = intent.getLongExtra(ActivityUtils.EXTRA_NOTIF_WHEN, System.currentTimeMillis());
+
+            BlockNotification newBlockNotif = new BlockNotification(packageName, content, timeStamp);
             adapterNotifs.update(newBlockNotif);
         }
     }
@@ -272,7 +273,6 @@ public class BlockActivity extends Activity {
         for (BluetoothGattService gattService : gattServices) {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
-            Log.i(ActivityUtils.APP_TAG, "### UUID CURRENT:" + uuid);
             Log.i(ActivityUtils.APP_TAG, GattAttributes.lookup(uuid, unknownServiceString));
             currentServiceData.put(
                     LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
@@ -280,21 +280,17 @@ public class BlockActivity extends Activity {
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
-
-            if(GattAttributes.lookup(uuid, unknownServiceString) == "UART service UUID") {
+            if (GattAttributes.lookup(uuid, unknownServiceString) == "UART service UUID") {
                 currentServiceData.put(LIST_UUID, uuid);
                 gattServiceData.add(currentServiceData);
 
                 // get characteristic when UUID matches RX/TX UUID
                 characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_TX);
                 characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_RX);
-                Log.i(ActivityUtils.APP_TAG, "### iS NULL: "+ (characteristicTX == null));
+                Log.i(ActivityUtils.APP_TAG, "characteristicTX: " + BluetoothLeService.UUID_nRF_TX);
+
             }
-
         }
-
-
-
     }
 
     private static IntentFilter makeGattUpdateIntentFilter() {
