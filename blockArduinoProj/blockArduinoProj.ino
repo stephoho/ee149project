@@ -27,16 +27,16 @@ uint32_t yellow = strip.Color(255, 255, 0);
 uint32_t white = strip.Color(255, 255, 255);
 uint32_t cyan = strip.Color(0, 255, 255);
 uint32_t noColor = strip.Color(0, 0, 0);
-char notifChar;
+char notifChar = 0;
 
 void setup() {
   Serial.begin(9600);
   
   while(!Serial); // Leonardo/Micro should wait for serial init
-  Serial.println(F("Adafruit Bluefruit Low Energy nRF8001 Callback Echo demo"));
+  Serial.println(F("Adafruit Bluefruit Low Energy nRF8001"));
   uart.setRXcallback(rxCallback);
   uart.setACIcallback(aciCallback);
-  // uart.setDeviceName("NEWNAME"); /* 7 characters max! */
+  uart.setDeviceName("[Block]"); /* 7 characters max! */
   uart.begin();
   
   pinMode(irSensor, INPUT);
@@ -52,27 +52,25 @@ void loop() {
     irValue = analogRead(irSensor);
     irValue = 255*(irValue / 1000.0);
     potentiometerDemo(irValue);
-  } 
-//  Serial.print("Output Value: ");
-//  Serial.print(irValue);
-//  Serial.print("\n"); 
+  }
 }
 
 // Changing LED color based on notification
 void displayNotif(){
-  rainbow(20); // idle
-  if (notifChar == 'f' or notifChar == 'F') {
+  //rainbow(20); // idle
+  theaterChase(strip.Color(127, 127, 127), 50); // White
+  if (notifChar == 'f') {
     colorWipe(blue, 50); // Blue
   } 
-  if (notifChar == 'l' or notifChar == 'L') {
+  else if (notifChar == 'l' or notifChar == 'h') {
     colorWipe(green, 50); // Green
   }
-  if (notifChar == 'g' or notifChar == 'G') {
+  else if (notifChar == 'g') {
     colorAlt2(red, white, 50); // Red and White
   }
-  if (notifChar == 'm' or notifChar == 'M' or notifChar == 't' or notifChar == 'T') {
+  else if (notifChar == 'm') {
     colorWipe(cyan, 50); // Cyan
-  }
+  } 
 }
 
 // Mini Project Update Demo: Potentiometer (11-19-14)
@@ -111,7 +109,7 @@ void potentiometerDemo(int colorOutput) {
   }
 }
 
-/**************************************************************************/
+/**********************************************w****************************/
 /*!
     BLE Code (from callbackEcho)
 */
@@ -143,9 +141,10 @@ void rxCallback(uint8_t *buffer, uint8_t len)
   Serial.print(F("Received "));
   Serial.print(len);
   Serial.print(F(" bytes: "));
-  for(int i=0; i<len; i++)
+  for(int i=0; i<len; i++) {
    Serial.print((char)buffer[i]); 
    notifChar = (char)buffer[0];
+  }
   Serial.print(F(" ["));
 
   for(int i=0; i<len; i++)
