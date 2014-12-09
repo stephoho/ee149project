@@ -19,10 +19,18 @@
         android:scaleType="centerInside"
         android:src="@drawable/title_placeholder" />
 
+    <Button
+        android:id="@+id/btnSkipToGrabber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ivBlockScanLogo"
+        android:onClick="goToNotifications"
+        android:text="Go to Notifications" />
+
     <ListView
         android:id="@+id/lvDevicesFound"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ivBlockScanLogo" />
+        android:layout_below="@id/btnSkipToGrabber" />
 
 </RelativeLayout>

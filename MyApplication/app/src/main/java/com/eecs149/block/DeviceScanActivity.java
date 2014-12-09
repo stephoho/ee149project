@@ -136,6 +136,12 @@ public class DeviceScanActivity extends ActionBarActivity {
         btLEDeviceListAdapter.clear();
     }
 
+    public void goToNotifications(View view) {
+        Log.i(ActivityUtils.APP_TAG, "=== Going to Notifications ===");
+        Intent intent = new Intent(this, BlockActivity.class);
+        startActivity(intent);
+    }
+
     public void setupDeviceSelectedListener() {
         lvBtDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

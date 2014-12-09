@@ -33,7 +33,7 @@ public class BlockNotification {
         return time;
     }
 
-    public String getTimgeString() {
+    public String getTimeString() {
         return format.print(time);
     }
 
