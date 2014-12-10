@@ -13,12 +13,12 @@
 #ifndef WS2812_h
 #define WS2812_h
 
-#define DEBUG true
+#define DEBUG false
 
 #include "Arduino.h"
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN 6
+#define LED_PIN 5
 #define STRIP_LENGTH 128
 #define BUFLENGTH 32
 
