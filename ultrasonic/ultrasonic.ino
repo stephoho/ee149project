@@ -3,84 +3,80 @@
 #define trigL 11
 #define echoL 10
 
-#define left  7
-#define right 6
+#define SWIPE_L 7
+#define SWIPE_R 6
 
-long durationR_prev, durationL_prev;
-float alpha = 0.01;
+#define DELAY = 1000
 
-
-
-int sensVal;           // for raw sensor values 
-float filterVal;       // this determines smoothness  - .0001 is max  1 is off (no smoothing)
-float smoothedVal;     // this holds the last loop value just use a unique variable for every different sensor that needs smoothing
-float smoothedVal2;   // this would be the buffer value for another sensor if you needed to smooth two different sensors - not used in this sketch
-int i, j;              // loop counters or demo     
-
-
-
+float rangeR, rangeL;
+float alpha = 0.0001;
 
 void setup() {
-  pinMode(trigR, OUTPUT);
-  pinMode(echoR, INPUT);
-  pinMode(trigL, OUTPUT);
-  pinMode(echoL, INPUT);
-
-  pinMode(left,  OUTPUT);
-  pinMode(right, OUTPUT);
+  ultra_setup();
   
-  Serial.begin(9600);
-}
+  pinMode(SWIPE_L, OUTPUT);
+  pinMode(SWIPE_R, OUTPUT);
+  }
 
 void loop() {
-  long durationR, distanceR;
-  long durationL, distanceL;  
-
-  durationR = readDuration(right);
-   for (i = 0; i < 7; i++){    // substitute some different filter values
-    filterVal = i * .15; 
-    for (j = 0; j< 60; j++){      
-      if (j < 30){            // generate a simulated square wave
-        sensVal = 1023;
-      } else {
-        sensVal = 0; 
-      }
-      sensVal = durationR;
-      smoothedVal =  smooth(sensVal, filterVal, smoothedVal);   // second parameter determines smoothness  - 0 is off,  .9999 is max smooth 
-
-      /*Serial.print(sensVal);
-      Serial.print("   ");
-      Serial.print(smoothedVal, DEC);
-      Serial.print("      ");
-      Serial.print("filterValue * 100 =  ");   // print doesn't work with floats
-      Serial.println(filterVal * 100, DEC);
-      delay(30); */
-    }
-  }
+  int swipe = readSwipe();
   
-  
-  
-  durationL = readDuration(left);
-
-
-  Serial.print("Right: ");
-  Serial.print(durationR);
-  Serial.print("\t");
-  Serial.print("Left:  ");
-  Serial.print(durationL);
-  Serial.println("\n");
-  delayMicroseconds(1000);  
+  if (swipe > 0) {
+    digitalWrite(swipe, HIGH);
+  } else {
+    digitalWrite(SWIPE_L, LOW);
+    digitalWrite(SWIPE_R, LOW);
+  }    
 
 }
 
+/** Returns:
+ *    -1	if   no  swipe 
+ *  SWIPE_R	if right swipe
+ *  SWIPE_L	if  left swipe
+ */
+int readSwipe() {
+  boolean detectR, detectL;
+  long start, duration;
+  
+  detectR =  readDuration(SWIPE_R) < rangeR;
+  detectL =  readDuration(SWIPE_L) < rangeL;
+  start = millis();
+  
+  if (detectR && !detectL) {
+    while(detectR || detectL) {
+      detectR =  readDuration(SWIPE_R) < rangeR;
+      detectL =  readDuration(SWIPE_L) < rangeL;      
+    }
+    duration = millis() - start;
+    if (duration < DELAY) {
+      delay(duration);
+    }
+    return SWIPE_R;
+  } else if (!detectR && detectL) {
+    while(detectR && detectL) {
+      detectR =  readDuration(SWIPE_R) < rangeR;
+      detectL =  readDuration(SWIPE_L) < rangeL;      
+    }
+    duration = millis() - start;
+    if (duration < DELAY) {
+      delay(duration);
+    }
+    return SWIPE_L;  
+  }
+  
+  return -1;
+}
+
+/* Returns the reading from the @side sensor. */
 int readDuration(int side) {
   int trig, echo;
-  if (side == left) {
+  if (side == SWIPE_L) {
     trig = trigL;
     echo = echoL;
-  } else if (side == right) {
+  } else if (side == SWIPE_R) {
     trig = trigR;
-    echo = trigR;
+    echo = echoR;
   }
   digitalWrite(trig, LOW);
   delayMicroseconds(5);    
@@ -89,18 +85,25 @@ int readDuration(int side) {
   return pulseIn(echo, HIGH);
 }
 
-int smooth(int data, float filterVal, float smoothedVal){
+/* Setup IO pins for each of the sensors. */
+void ultra_setup() {
+  pinMode(trigR, OUTPUT);
+  pinMode(echoR, INPUT);
+  pinMode(trigL, OUTPUT);
+  pinMode(echoL, INPUT);
 
+  calibrate();
+}
 
-  if (filterVal > 1){      // check to make sure param's are within range
-    filterVal = .99;
+/* Sample the average reading for maximum sensor range. */
+void calibrate() {
+  rangeR = readDuration(SWIPE_R);
+  rangeL = readDuration(SWIPE_L);
+  for (int i = 0; i < 50; i++) {
+    rangeR = (readDuration(SWIPE_R) * (1 - alpha)) + (rangeR  *  alpha);
+    rangeL = (readDuration(SWIPE_L)  * (1 - alpha)) + (rangeL  *  alpha);   
   }
-  else if (filterVal <= 0){
-    filterVal = 0;
-  }
-
-  smoothedVal = (data * (1 - filterVal)) + (smoothedVal  *  filterVal);
-
-  return (int)smoothedVal;
+  rangeR = rangeR * 0.1; // reduce gesture detection to 
+  rangeL = rangeL * 0.1; //  ten percent of maximum range
 }
 
