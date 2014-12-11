@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -17,6 +18,8 @@ public class NLService extends NotificationListenerService {
     private String NLS_TAG = this.getClass().getSimpleName();
 
     private NLServiceReceiver nlServiceReceiver;
+
+    public static boolean isNotificationAccessEnabled = false;
 
     @Override
     public void onCreate() {
@@ -32,6 +35,21 @@ public class NLService extends NotificationListenerService {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(nlServiceReceiver);
+        stopService(new Intent(this, NLService.class));
+    }
+
+    @Override
+    public boolean onUnbind(Intent mIntent) {
+        boolean mOnUnbind = super.onUnbind(mIntent);
+        isNotificationAccessEnabled = false;
+        return mOnUnbind;
+    }
+
+    @Override
+    public IBinder onBind(Intent mIntent) {
+        IBinder mIBinder = super.onBind(mIntent);
+        isNotificationAccessEnabled = true;
+        return mIBinder;
     }
 
 
@@ -40,16 +58,23 @@ public class NLService extends NotificationListenerService {
 
         Log.i(NLS_TAG, "**********  onNotificationPosted");
         Log.i(NLS_TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
-        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
-        i.putExtra(ActivityUtils.EXTRA_NEW_NOTIF, sbn);
-        sendBroadcast(i);
 
+        // put the time, content, and app package into the intent.
+        // Notes: there are some problems sending the entire sbn
+        // see: http://stackoverflow.com/questions/20929107/android-broadcasting-parcelable-data
+        // for our use case, packageName, postTime, and contents should be enough
+        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
+        i.putExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME, sbn.getPackageName());
+        i.putExtra(ActivityUtils.EXTRA_NOTIF_WHEN, sbn.getNotification().when);
+        i.putExtra(ActivityUtils.EXTRA_NOTIF_CONTENT, sbn.getNotification().tickerText.toString());
+        sendBroadcast(i);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.i(NLS_TAG, "********** onNotificationRemoved");
         Log.i(NLS_TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
+        // TODO:
 //        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
 //        i.putExtra("notification_event", "onNotificationRemoved :" + sbn.getPackageName() + "n");
 //        sendBroadcast(i);
