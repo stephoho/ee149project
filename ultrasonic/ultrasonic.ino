@@ -6,29 +6,28 @@
 #define SWIPE_L 7
 #define SWIPE_R 6
 
-#define DELAY = 1000
+#define DELAY 250
 
 float rangeR, rangeL;
 float alpha = 0.0001;
 
+
+
+
+
+
 void setup() {
   ultra_setup();
-  
-  pinMode(SWIPE_L, OUTPUT);
-  pinMode(SWIPE_R, OUTPUT);
-  }
+}
 
 void loop() {
   int swipe = readSwipe();
-  
-  if (swipe > 0) {
-    digitalWrite(swipe, HIGH);
-  } else {
-    digitalWrite(SWIPE_L, LOW);
-    digitalWrite(SWIPE_R, LOW);
-  }    
-
 }
+
+
+
+
+
 
 /** Returns:
  *    -1	if   no  swipe 
@@ -44,23 +43,17 @@ int readSwipe() {
   start = millis();
   
   if (detectR && !detectL) {
+    delay(DELAY);
     while(detectR || detectL) {
       detectR =  readDuration(SWIPE_R) < rangeR;
-      detectL =  readDuration(SWIPE_L) < rangeL;      
-    }
-    duration = millis() - start;
-    if (duration < DELAY) {
-      delay(duration);
+      detectL =  readDuration(SWIPE_L) < rangeL;
     }
     return SWIPE_R;
   } else if (!detectR && detectL) {
-    while(detectR && detectL) {
+    delay(DELAY);
+    while(detectR || detectL) {
       detectR =  readDuration(SWIPE_R) < rangeR;
-      detectL =  readDuration(SWIPE_L) < rangeL;      
-    }
-    duration = millis() - start;
-    if (duration < DELAY) {
-      delay(duration);
+      detectL =  readDuration(SWIPE_L) < rangeL;
     }
     return SWIPE_L;  
   }
