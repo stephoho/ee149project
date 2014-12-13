@@ -6,6 +6,11 @@ var webSocket = require('ws'),
     led, frame;
 var hands, positions = [];
 
+var SerialPort = require("serialport").SerialPort
+var serialPort = new SerialPort("/dev/tty-usbserial1", {
+  baudrate: 9600
+});
+
 board.on('ready', function() {
     led = new five.Led(13);    
     ws.on('message', function(data, flags) {

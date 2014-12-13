@@ -7,10 +7,16 @@ var ws = new webSocket('ws://127.0.0.1:6437');
 
 var hands, positions = [];
 
+var SerialPort = require("serialport").SerialPort
+var serialPort = new SerialPort("/dev/ttyACM0", {
+  baudrate: 57600
+});
+
 ws.on('message', function(data, flags) {
     hands = _.toArray(JSON.parse(data).hands);
     for (var i = 0; i < hands.length; i++) {
 	positions[i] = hands[i].stabilizedPalmPosition[0];
 	console.log((positions[i]+300)/600);
+	serialPort.write(positions[i]);
     }
 });

@@ -4,9 +4,7 @@ var _ = require('underscore');
 var webSocket = require('ws'),
     ws = new webSocket('ws://127.0.0.1:6437');
 var hands, positions = [];
-
 var serialport = "/dev/ttyACM0";
-
 var red = 0, green = 0, blue = 0;
 
 var board = new firmata.Board(serialport, function (error) {
@@ -18,28 +16,28 @@ var board = new firmata.Board(serialport, function (error) {
 
     board.on('string', function(data) {
         var message = '';
-
         for (var index = 0, length = data.length; index < length; index += 2) {
             message += String.fromCharCode(
                 ((data.charCodeAt(index+1) & 0x7F) << 7) +
                 (data.charCodeAt(index)   & 0x7F)
                 );
         }
-
         if (messageHandler != null) messageHandler(message);
     });
-
 });
 
+
 rainbow(50);
-ws.on('message', function(data, flags) {
-    hands = _.toArray(JSON.parse(data).hands);
-    for (var i = 0; i < hands.length; i++) {
-	positions[0] = (hands[i].stabilizedPalmPosition[0]+300)/600;
-	positions[1] = (hands[i].stabilizedPalmPosition[1]+300)/600;
-	positions[2] = (hands[i].stabilizedPalmPosition[2]+300)/600;
-	sendPixel(0, 255, 0, Math.floor(positions[0]*128));
-    }
+board.on('ready', function() {
+    ws.on('message', function(data, flags) {
+	hands = _.toArray(JSON.parse(data).hands);
+	for (var i = 0; i < hands.length; i++) {
+	    positions[0] = (hands[i].stabilizedPalmPosition[0]+300)/600;
+	    positions[1] = (hands[i].stabilizedPalmPosition[1]+300)/600;
+	    positions[2] = (hands[i].stabilizedPalmPosition[2]+300)/600;
+	    sendPixel(0, 255, 0, Math.floor(positions[0]*128));
+	}
+    });
 });
 
 
@@ -62,12 +60,6 @@ function rainbow(pixels) {
         }, i*50, i);
     }
 }
-
-var sendPackedPixel = function (rgb, pos) {
-    msg = "{p:" + pos + ",c:" + rgb + "}";
-    sendSysExString(msg);
-}
-
 
 var sendPixel = function(red, green, blue, pos) {
     var send = true;
