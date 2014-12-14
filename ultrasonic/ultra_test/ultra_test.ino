@@ -1,7 +1,7 @@
-#define trigR 13
-#define echoR 12
-#define trigL 11
-#define echoL 10
+#define trigR 7
+#define echoR 6
+#define trigL 5
+#define echoL 4
 
 #define SWIPE_L 27
 #define SWIPE_R 26
@@ -71,7 +71,6 @@ void loop() {
  */
 int readSwipe() {
   boolean detectR, detectL;
-  long start, duration;
   
   long right = readDuration(SWIPE_R); 
   long left  = readDuration(SWIPE_L); 
@@ -80,8 +79,7 @@ int readSwipe() {
   detectR =  (right < rangeR) && (right > 0);
   detectL =   (left < rangeL) && (left > 0);
   
-  start = millis();
-
+  Serial.println("Left: \t" + String(left) + "\tRight:\t" + String(right));  
   
   if (detectR && !detectL) {
     while(detectR || detectL) {
