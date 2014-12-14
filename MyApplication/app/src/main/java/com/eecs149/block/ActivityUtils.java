@@ -1,7 +1,5 @@
 package com.eecs149.block;
 
-import java.util.UUID;
-
 /**
  * Created by stephanieho on 11/16/14.
  */
@@ -26,8 +24,7 @@ public class ActivityUtils {
     public static final String EXTRA_NOTIF_PACKAGE_NAME = "com.ee149.block.SBN_PACKAGE_NAME";
     public static final String EXTRA_NOTIF_WHEN = "com.ee149.block.NOTIF_WHEN";
     public static final String EXTRA_NOTIF_CONTENT = "com.ee149.block.NOTIF_CONTENT";
-
-
+    public static final String EXTRA_NOTIF_ACTION_TYPE = "com.ee149.block.NOTIF_ACTION";
 
 
     // bluetoothLeService
@@ -41,7 +38,6 @@ public class ActivityUtils {
             "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
-
 
 
 }

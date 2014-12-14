@@ -16,6 +16,8 @@ import android.util.Log;
 public class NLService extends NotificationListenerService {
 
     private String NLS_TAG = this.getClass().getSimpleName();
+    public static String NLS_POST = "NOTIF_POST";
+    public static String NLS_REMOVE = "NOTIF_REMOVE";
 
     private NLServiceReceiver nlServiceReceiver;
 
@@ -64,21 +66,26 @@ public class NLService extends NotificationListenerService {
         // Notes: there are some problems sending the entire sbn
         // see: http://stackoverflow.com/questions/20929107/android-broadcasting-parcelable-data
         // for our use case, packageName, postTime, and contents should be enough
-        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
-        i.putExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME, sbn.getPackageName());
-        i.putExtra(ActivityUtils.EXTRA_NOTIF_WHEN, sbn.getNotification().when);
-        i.putExtra(ActivityUtils.EXTRA_NOTIF_CONTENT, sbn.getNotification().tickerText.toString());
-        sendBroadcast(i);
+
+        // clearable sbn only because don't want stuck notifications on [BLOCK]
+        if (sbn.isClearable()) {
+            Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
+            i.putExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE, NLS_POST);
+            i.putExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME, sbn.getPackageName());
+            i.putExtra(ActivityUtils.EXTRA_NOTIF_WHEN, sbn.getNotification().when);
+            i.putExtra(ActivityUtils.EXTRA_NOTIF_CONTENT, sbn.getNotification().tickerText.toString());
+            sendBroadcast(i);
+        }
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.i(NLS_TAG, "********** onNotificationRemoved");
         Log.i(NLS_TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
-        // TODO:
-//        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
-//        i.putExtra("notification_event", "onNotificationRemoved :" + sbn.getPackageName() + "n");
-//        sendBroadcast(i);
+        Intent i = new Intent(ActivityUtils.NOTIFICATION_CHANGED);
+        i.putExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE, NLS_REMOVE);
+        i.putExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME, sbn.getPackageName());
+        sendBroadcast(i);
     }
 
     class NLServiceReceiver extends BroadcastReceiver {

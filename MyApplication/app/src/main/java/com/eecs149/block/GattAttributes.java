@@ -20,17 +20,18 @@ package com.eecs149.block;
 import android.util.Log;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * This class includes a small subset of standard GATT attributes for demonstration purposes.
  */
 public class GattAttributes {
-    private static HashMap<String, String> attributes = new HashMap();
+    private static HashMap<UUID, String> attributes = new HashMap();
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
-
-    public static String UART_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-    public static String nRF_TX = "6e400002-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase();
-    public static String nRF_RX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase();
+//    UUID=3c43ec53-be4a-499a-bc15-5206a7258106
+    public static UUID UART_SERVICE = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    public static UUID nRF_TX = UUID.fromString("6e400002-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase());
+    public static UUID nRF_RX = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase());
 
     static {
         attributes.put(nRF_TX, "TX data");
@@ -38,9 +39,8 @@ public class GattAttributes {
         attributes.put(UART_SERVICE, "UART service UUID");
     }
 
-    public static String lookup(String uuid, String defaultName) {
-        String name = attributes.get(uuid);
-        Log.i(ActivityUtils.APP_TAG, "==== NAME: " + name);
+    public static String lookup(String uuidStr, String defaultName) {
+        String name = attributes.get(UUID.fromString(uuidStr));
         return name == null ? defaultName : name;
     }
 }

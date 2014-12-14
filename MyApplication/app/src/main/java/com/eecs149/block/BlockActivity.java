@@ -17,6 +17,9 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.koushikdutta.async.util.Charsets;
+
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,11 +47,13 @@ public class BlockActivity extends Activity {
 
     private NotificationReceiver notifReceiver;
 
-    public final static UUID UUID_nRF_TX = UUID.fromString(GattAttributes.nRF_TX);
-    public final static UUID UUID_nRF_RX = UUID.fromString(GattAttributes.nRF_RX);
+    public final static UUID UUID_nRF_TX = GattAttributes.nRF_TX;
+    public final static UUID UUID_nRF_RX = GattAttributes.nRF_RX;
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
+    private final String REMOVE = "remove";
+    private final String POST = "post";
 
     // manage bluetoothLeService lifecycle
     private final ServiceConnection btServiceConnection = new ServiceConnection() {
@@ -89,7 +94,6 @@ public class BlockActivity extends Activity {
                 connected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
-//                clearUI();
             } else if (ActivityUtils.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 Log.i(ActivityUtils.APP_TAG, "=== GATT SERVICE DISCOVERED");
 
@@ -125,15 +129,9 @@ public class BlockActivity extends Activity {
         adapterNotifs = new NotificationAdapter(this, blockNotifsList);
         lvNotifications.setAdapter(adapterNotifs);
 
-
         // start bluetooth service
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
-
-        // start notification listener service
-        Log.i(ActivityUtils.APP_TAG, "### ATTEMPTING TO START NLSERVICE");
-        startService(new Intent(this, NLService.class));
-
 
     }
 
@@ -175,75 +173,73 @@ public class BlockActivity extends Activity {
         if (connected) {
             btleService.disconnect();
             btnConnectionToggle.setText(R.string.action_connect);
+
+
         } else {
             btleService.connect(deviceAddress);
             btnConnectionToggle.setText(R.string.action_disconnect);
         }
     }
 
-    // for testing
-    public void sendColor(View view) {
-        int choice = randInt(0, 4);
-        String msg = getAppName(choice).toLowerCase() + "\n";
-        Log.d(ActivityUtils.APP_TAG, " ### Sending result=" + msg);
-        byte[] tx = null;
-        try {
-            tx = msg.getBytes("UTF-8");
-        } catch (Exception e) {
-            Log.d(ActivityUtils.APP_TAG, "THIS THINGS SUCKS");
-        }
-        if (connected) {
-            characteristicTX.setValue(tx);
-            tvDataField.setText("SENT: " + choice);
-            btleService.writeCharacteristic(characteristicTX);
-            btleService.setCharacteristicNotification(characteristicRX, true);
-        }
-    }
 
-    private String getAppName(int choice) {
-        switch (choice) {
-            case 0:
-                return "f";
-            case 1:
-                return "l";
-            case 2:
-                return "g";
-            case 3:
-                return "m";
-            case 4:
-                return "h";
-            default:
-                return "f";
-        }
-    }
-
-    //temp
-    public static int randInt(int min, int max) {
-
-        // NOTE: Usually this should be a field rather than a method
-        // variable so that it is not re-seeded every call.
-        Random rand = new Random();
-
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-        return randomNum;
-    }
 
     class NotificationReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             // add to adapter.
-            // TODO : does not yet support removing from list
             Log.i(ActivityUtils.APP_TAG, "Received new item from NLService");
-            String packageName = intent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
-            String content = intent.getStringExtra(ActivityUtils.EXTRA_NOTIF_CONTENT);
-            long timeStamp = intent.getLongExtra(ActivityUtils.EXTRA_NOTIF_WHEN, System.currentTimeMillis());
+            handleBroadcastIntent(intent);
+            sendToBlock(intent);
+        }
+    }
+
+    private void handleBroadcastIntent(Intent nlsIntent) {
+        String actionType = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE);
+        if (actionType.equals(NLService.NLS_POST)) {
+            String packageName = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
+            String content = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_CONTENT);
+            long timeStamp = nlsIntent.getLongExtra(ActivityUtils.EXTRA_NOTIF_WHEN, System.currentTimeMillis());
 
             BlockNotification newBlockNotif = new BlockNotification(packageName, content, timeStamp);
             adapterNotifs.update(newBlockNotif);
+
+        } else if (actionType.equals(NLService.NLS_REMOVE)) {
+            String packageName = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
+            adapterNotifs.remove(packageName);
         }
     }
+
+    private void sendToBlock(Intent nlsIntent){
+        String msg = makeDatagram(nlsIntent);
+        System.out.println("#### SENDING: " + msg);
+        byte[] tx = null;
+        try {
+            tx = msg.getBytes("US-ASCII");
+        } catch (Exception e) {
+            Log.d(ActivityUtils.APP_TAG, "THIS THING SUCKS OR YOU MESSED UP");
+        }
+        if (connected) {
+            characteristicTX.setValue(tx);
+            tvDataField.setText("SENT: " + msg);
+            btleService.writeCharacteristic(characteristicTX);
+            btleService.setCharacteristicNotification(characteristicRX, true);
+        }
+    }
+
+    private String makeDatagram(Intent nlsIntent) {
+        String pckg = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
+        String app = BlockNotification.getShortName(pckg);
+        String actionType = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE);
+        String action = "post";
+        if (actionType.contains(POST)) {
+            action = POST;
+        } else if (actionType.contains(REMOVE)){
+            action = REMOVE;
+        }
+        return app + ";" + action;
+
+    }
+
 
     // update device connection state
     private void updateConnectionState(final int resourceId) {
@@ -273,22 +269,20 @@ public class BlockActivity extends Activity {
         for (BluetoothGattService gattService : gattServices) {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
-            Log.i(ActivityUtils.APP_TAG, GattAttributes.lookup(uuid, unknownServiceString));
             currentServiceData.put(
                     LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
 
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
-            if (GattAttributes.lookup(uuid, unknownServiceString) == "UART service UUID") {
+            if (GattAttributes.lookup(uuid, unknownServiceString).contains("UART")) {
                 currentServiceData.put(LIST_UUID, uuid);
                 gattServiceData.add(currentServiceData);
 
                 // get characteristic when UUID matches RX/TX UUID
                 characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_TX);
                 characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_nRF_RX);
-                Log.i(ActivityUtils.APP_TAG, "characteristicTX: " + BluetoothLeService.UUID_nRF_TX);
-
+                break;
             }
         }
     }

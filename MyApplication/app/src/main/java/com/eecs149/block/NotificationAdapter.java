@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by stephanieho on 11/16/14.
@@ -16,8 +17,11 @@ import java.util.ArrayList;
 
 public class NotificationAdapter extends ArrayAdapter<BlockNotification> {
 
+    ArrayList<BlockNotification> blockNotifs;
+
     public NotificationAdapter(Context context, ArrayList<BlockNotification> notifList) {
         super(context, 0, notifList);
+        blockNotifs = notifList;
     }
 
     @Override
@@ -42,7 +46,18 @@ public class NotificationAdapter extends ArrayAdapter<BlockNotification> {
 
     public void update(BlockNotification newNotif) {
         add(newNotif);
-        notifyDataSetChanged();
+    }
+
+    public void remove(String packageName) {
+        // remove all notifications from specified packageName
+//        for (BlockNotification notif : blockNotifs) {
+//            if (notif.getAppName().equals(packageName)) {
+//                blockNotifs.remove(notif);
+//            }
+//        }
+//        notifyDataSetChanged();
+
+        clear();
     }
 
 }

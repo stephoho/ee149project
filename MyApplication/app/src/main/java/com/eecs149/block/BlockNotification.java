@@ -38,20 +38,28 @@ public class BlockNotification {
     }
 
 
-    // map app to color
-    // TODO: map to ints instead
-    public String getColor() {
-        if (appName.contains("facebook")){
-            return "blue";
-        } else if (appName.contains("google") && appName.contains("talk")) {
-            return "green";
-        } else if (appName.contains("google") && appName.contains("gm")) {
-            return "red";
-        } else if (appName.contains("naver") && appName.contains("line")) {
-            return "white";
+    // map app package to short name to send
+    public String getShortName() {
+        return getShortName(this.appName);
+    }
+
+    public static String getShortName(String input) {
+        if (input.contains("facebook")) {
+            return "facebook";
+        } else if (input.contains("com.facebook.orca")) {
+            return "fbmessenger";
+        } else if (input.contains("com.google.android.gm")) {
+            return "gmail";
+        } else if (input.contains("com.google.android.talk")) {
+            return "hangouts";
+        } else if (input.contains("jp.naver.line.android")) {
+            return "line";
+        } else if (input.contains("com.snapchat.android")) {
+            return "snapchat";
         } else {
-            return "";
+            return "other";
         }
+
     }
 
 
