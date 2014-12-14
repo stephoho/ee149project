@@ -40,7 +40,7 @@ uint32_t cyan    = strip.Color(  0, 255, 255);
 uint32_t magenta = strip.Color(255,   0, 255);
 uint32_t white   = strip.Color(255, 255, 255);
 uint32_t noColor = strip.Color(  0,   0,   0);
-String notifChar;
+String notifChar = "";
 
 
 // tracking stuff
@@ -71,29 +71,26 @@ void setup() {
 }
 
 void loop() {
-  //colorWipe(notifs[cur], 50);
-  int swipe = readSwipe();
-  if (swipe == SWIPE_R) {
-    int old = cur;
-    cur = (cur + 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));    
-    colorWipe(notifs[cur], 50);
-  } else if (swipe == SWIPE_L) {
-    int old = cur;
-    cur = (cur - 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));
-    colorWipe(notifs[cur], 50);
-  }
-  delay(500);
-  displayNotif();
-  //displayNotification();
-  
+  displayNotification();
+//  int swipe = readSwipe();
+//  if (swipe == SWIPE_R) {
+//    int old = cur;
+//    cur = (cur + 1) % tot;
+//    if (cur < 0) {
+//      cur += tot;
+//    }
+//    Serial.println("from " + String(old) + " to " + String(cur));    
+//    colorWipe(notifs[cur], 50);
+//  } else if (swipe == SWIPE_L) {
+//    int old = cur;
+//    cur = (cur - 1) % tot;
+//    if (cur < 0) {
+//      cur += tot;
+//    }
+//    Serial.println("from " + String(old) + " to " + String(cur));
+//    colorWipe(notifs[cur], 50);
+//  }
+//  delay(500);  
   uart.pollACI();  
 }
 
@@ -117,54 +114,23 @@ void displayNotif(){
 
 void displayNotification() {
   theaterChase(strip.Color(127, 127, 127), 50); // Whites
-  Serial.println("displaying notification: ");
-  Serial.println(notifChar);
-   if (notifChar.substring(notifChar.length()) == "gmail") {
-     colorAlt2(red, white, 50); // Red and White
+  if (uart.available()) {
+    Serial.println("displaying notification: ");
+    Serial.println(notifChar.substring(notifChar.length()));
+    Serial.println(notifChar.length());
+    if (notifChar.substring(0, 5) == "gmail") {
+      colorAlt2(red, white, 50); // Red and White
+    }
+    else if (notifChar.substring(0, 8) == "hangouts") {
+      colorWipe(green, 50); // Red and White
+    }
+    else if (notifChar.substring(0,8) == "facebook") {
+      colorWipe(blue, 50);
+    }
    }
-   if (notifChar.substring(notifChar.length()) == "hangouts") {
-     colorWipe(green, 50); // Red and White
-   }
-   
-  // OK while we still have something to read, get a character and print it out
-  Serial.print(notifChar);
+  notifChar = (String)"";
 }
 
-// Mini Project Update Demo: Potentiometer (11-19-14)
-void potentiometerDemo(int colorOutput) {
-  // set startColor
-  if (flag == 0) {
-    startColor = colorOutput;
-    flag = 1;
-  } 
-  // initialize 1st pixel
-//  strip.setPixelColor(0, blue);
-//  strip.show();
-//  delay(wait);
-  
-  // add pixels
-  if (colorOutput > startColor & (colorOutput - startColor) >= pixelDiff) {
-    pixelDiff = colorOutput - startColor;
-    maxPixel = pixelDiff;
-    for (int i=0; i<pixelDiff; i++) {
-      if (i%2 == 0) {
-        strip.setPixelColor(i, blue);
-      } else {
-        strip.setPixelColor(i, yellow);
-      }
-      strip.show();
-      delay(wait);
-    }
-  }
-  else { // remove pixels
-    pixelDiff = colorOutput - startColor;
-    for (int i=maxPixel; i>pixelDiff; i--) {
-      strip.setPixelColor(i, noColor);
-      strip.show();
-      delay(wait);
-    }
-  }
-}
 
 /**********************************************w****************************/
 /*!
@@ -200,18 +166,20 @@ void rxCallback(uint8_t *buffer, uint8_t len) {
    Serial.print((char)buffer[i]); 
    notifChar += ((char)buffer[i]);
   }
-  Serial.println("Next: ");
+  Serial.println("");
+  Serial.print("Next: ");
   Serial.println(notifChar);
-  Serial.print(F(" ["));
-
-  for(int i=0; i<len; i++)
-  {
-    Serial.print(" 0x"); Serial.print((char)buffer[i], HEX); 
-  }
-  Serial.println(F(" ]"));
-
+  
+//  Serial.print(F(" ["));
+//  for(int i=0; i<len; i++)
+//  {
+//    Serial.print(" 0x"); Serial.print((char)buffer[i], HEX); 
+//  }
+//  Serial.println(F(" ]"));
   /* Echo the same data back! */
-  uart.write(buffer, len);
+//  uart.write(buffer, len);
+
+  Serial.println("end of rxCallback function!");
 }
 
 
