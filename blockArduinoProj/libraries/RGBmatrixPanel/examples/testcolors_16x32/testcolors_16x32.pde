@@ -11,45 +11,51 @@
 #include <RGBmatrixPanel.h> // Hardware-specific library
 
 #define CLK 8  // MUST be on PORTB! (Use pin 11 on Mega)
-#define LAT A5
+#define LAT A3
 #define OE  9
-#define A   A2
-#define B   A3
-#define C   A4
+#define A   A0
+#define B   A1
+#define C   A2
 RGBmatrixPanel matrix(A, B, C, CLK, LAT, OE, false);
-
-uint8_t r=0, g=0, b=0;
 
 void setup() {
   matrix.begin();
-  Serial.begin(9600);
-}
+  uint8_t r=0, g=0, b=0;
 
-void topHalf() {
   // Draw top half
-  for (uint8_t y=0; y < 8; y++) {      
-    for (uint8_t x=0; x < 32; x++) {  
-      matrix.drawPixel(x, y, matrix.Color333(0, 7, 0));
+  for (uint8_t x=0; x < 32; x++) {      
+    for (uint8_t y=0; y < 8; y++) {  
+      matrix.drawPixel(x, y, matrix.Color333(r, g, b));
+      r++;
+      if (r == 8) {
+        r = 0;
+        g++;
+        if (g == 8) {
+          g = 0;
+          b++;
+        }
+      }
     }
   }
-}
 
-void bottomHalf() {
   // Draw bottom half
   for (uint8_t x=0; x < 32; x++) {      
     for (uint8_t y=8; y < 16; y++) {  
-      matrix.drawPixel(x, y, matrix.Color333(5, 5, 0));
+      matrix.drawPixel(x, y, matrix.Color333(r, g, b));
+      r++;
+      if (r == 8) {
+        r = 0;
+        g++;
+        if (g == 8) {
+          g = 0;
+          b++;
+        }
+      }
     }
   }
 }
 
-
 void loop() {
-  //topHalf();
-  //bottomHalf();
-  //matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 0, 0));
-  for (int y=0; y < 16; y++) {
-    matrix.drawPixel(0, y, matrix.Color333(7, 7, 0));
-  }
+  // do nothing
 }
 
