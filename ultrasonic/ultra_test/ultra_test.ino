@@ -75,6 +75,8 @@ int readSwipe() {
   
   long right = readDuration(SWIPE_R); 
   long left  = readDuration(SWIPE_L); 
+  long last_R;
+  long last_L;
   detectR =  (right < rangeR) && (right > 0);
   detectL =   (left < rangeL) && (left > 0);
   
@@ -84,22 +86,37 @@ int readSwipe() {
   if (detectR && !detectL) {
     while(detectR || detectL) {
       Serial.println("Left: \t" + String(left) + "\tRight:\t" + String(right));  
+      last_R = right;
+      last_L = left;
       right = readDuration(SWIPE_R); 
-      left  = readDuration(SWIPE_L);       
+      left  = readDuration(SWIPE_L);   
       detectR =  right < rangeR && (right > 0);
       detectL =  left  < rangeL && (left > 0); 
     }
-
-    return SWIPE_R;
+    detectR =  last_R < rangeR && (last_R > 0);
+    detectL =  last_L < rangeL && (last_L > 0); 
+    if (!detectR && detectL) {
+      return SWIPE_R;
+    } else {
+      Serial.println("INCONSISTENT READING");
+    }      
   } else if (!detectR && detectL) {
     while(detectR || detectL) {
       Serial.println("Left: \t" + String(left) + "\tRight:\t" + String(right));  
+      last_R = right;
+      last_L = left;
       right = readDuration(SWIPE_R); 
       left  = readDuration(SWIPE_L);       
       detectR =  right < rangeR && (right > 0);
       detectL =  left  < rangeL && (left > 0); 
     }
-    return SWIPE_L;  
+    detectR =  last_R < rangeR && (last_R > 0);
+    detectL =  last_L < rangeL && (last_L > 0); 
+    if (detectR && !detectL) {
+      return SWIPE_L;  
+    } else {
+      Serial.println("INCONSISTENT READING");
+    }
   }
   
   return -1;
