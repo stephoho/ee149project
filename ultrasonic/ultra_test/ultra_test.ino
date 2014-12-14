@@ -15,7 +15,8 @@
 #define out 3
 
 
-long rangeR, rangeL;
+long rangeR = 1000;
+long rangeL = 1000;
 float alpha = 0.0001;
 
 String dup = "";
@@ -44,16 +45,21 @@ void setup() {
 void loop() {
   int swipe = readSwipe();
   if (swipe == SWIPE_R) {
+    Serial.println(">>>>>>>>>>>>>>>>>>>RIGHT>>>>>>>>>>>>>>>>>>>");
     digitalWrite(r, LOW);
     digitalWrite(g, LOW);
     digitalWrite(b, LOW);
+    delay(DELAY);
   } else if (swipe == SWIPE_L) {
-    analogWrite(r, random(255));
-    analogWrite(g, random(255));    
-    analogWrite(b, random(255));  
-  } else {
-    digitalWrite(SWIPE_L, LOW);
-    digitalWrite(SWIPE_R, LOW);
+    int red = random(100, 255);
+    int gre = random(100, 255);
+    int blu = random(100, 255);
+    Serial.println("<<<<<<<<<<<<<<<<<<<<<LEFT<<<<<<<<<<<<<<<<<<<<<");
+    //Serial.println("RED: " + String(red) + "\tGREEN: " + String(gre) + "\tBLUE: " + String(blu));
+    analogWrite(r, red);
+    analogWrite(g, gre);    
+    analogWrite(b, blu);  
+    delay(DELAY);
   }    
 
 }
@@ -69,31 +75,29 @@ int readSwipe() {
   
   long right = readDuration(SWIPE_R); 
   long left  = readDuration(SWIPE_L); 
-  detectR =  right < rangeR;
-  detectL =  left < rangeL;
-  
-  Serial.println("Right: \t" + String(right) + "\tLeft:\t" + String(left));  
+  detectR =  (right < rangeR) && (right > 0);
+  detectL =   (left < rangeL) && (left > 0);
   
   start = millis();
+
   
   if (detectR && !detectL) {
     while(detectR || detectL) {
-      detectR =  readDuration(SWIPE_R) < rangeR;
-      detectL =  readDuration(SWIPE_L) < rangeL;      
+      Serial.println("Left: \t" + String(left) + "\tRight:\t" + String(right));  
+      right = readDuration(SWIPE_R); 
+      left  = readDuration(SWIPE_L);       
+      detectR =  right < rangeR && (right > 0);
+      detectL =  left  < rangeL && (left > 0); 
     }
-    duration = millis() - start;
-    if (duration < DELAY) {
-      delay(duration);
-    }
+
     return SWIPE_R;
   } else if (!detectR && detectL) {
-    while(detectR && detectL) {
-      detectR =  readDuration(SWIPE_R) < rangeR;
-      detectL =  readDuration(SWIPE_L) < rangeL;      
-    }
-    duration = millis() - start;
-    if (duration < DELAY) {
-      delay(duration);
+    while(detectR || detectL) {
+      Serial.println("Left: \t" + String(left) + "\tRight:\t" + String(right));  
+      right = readDuration(SWIPE_R); 
+      left  = readDuration(SWIPE_L);       
+      detectR =  right < rangeR && (right > 0);
+      detectL =  left  < rangeL && (left > 0); 
     }
     return SWIPE_L;  
   }
@@ -115,7 +119,7 @@ long readDuration(int side) {
   delayMicroseconds(5);    
   digitalWrite(trig, HIGH);  
   delayMicroseconds(10);  
-  return pulseIn(echo, HIGH);
+  return pulseIn(echo, HIGH, 10000);
 }
 
 /* Setup IO pins for each of the sensors. */
