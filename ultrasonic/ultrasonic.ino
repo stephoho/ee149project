@@ -1,12 +1,6 @@
-#define trigR 13
-#define echoR 12
-#define trigL 11
-#define echoL 10
 
 #define SWIPE_L 20
 #define SWIPE_R 21
-
-#define DELAY 250
 
 #define r 7
 #define g 6
@@ -63,7 +57,6 @@ void loop() {
   printdup(String(cur) + " out of " + String(tot) + " : " + String(notif[cur][0]) + "\t" + String(notif[cur][1]) + "\t" + String(notif[cur][2]));
 }
 
-
 void addNotif() {
   if (digitalRead(in) == HIGH && tot < 9) {
     int red = random(255);
@@ -107,9 +100,6 @@ void remNotif() {
   }
   delay(1000);  
 }
-
-
-
 
 /** Returns:
  *    -1	if   no  swipe 
