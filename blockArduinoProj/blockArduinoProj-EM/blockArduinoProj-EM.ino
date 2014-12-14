@@ -4,56 +4,33 @@
 
 // pins and objecs
 #define ADAFRUITBLE_REQ 10
-#define ADAFRUITBLE_RDY 2 //add to ultra
+#define ADAFRUITBLE_RDY 0
 #define ADAFRUITBLE_RST 9
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
-
-// ultrasonic constants
-#define trigR 7
-#define echoR 6
-#define trigL 5
-#define echoL 4
-
-#define SWIPE_L 42
-#define SWIPE_R 43
-#define DELAY  250
-#define RANGE 1000
-
-// neopixel pins
-#define PIN 3
+#define PIN 5
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
 int irSensor = A5;
 
 // global variables
+float irValue = 0;
 float colorOutput = 0;
 int startColor = 0;
 int flag = 0;
 int pixelDiff = 0;
 int maxPixel = 0;
 int wait = 10;
-uint32_t blue    = strip.Color(  0,   0, 255);
-uint32_t red     = strip.Color(255,   0,   0);
-uint32_t green   = strip.Color(  0, 255,   0);
-uint32_t yellow  = strip.Color(255, 255,   0);
-uint32_t cyan    = strip.Color(  0, 255, 255);
-uint32_t magenta = strip.Color(255,   0, 255);
-uint32_t white   = strip.Color(255, 255, 255);
-uint32_t noColor = strip.Color(  0,   0,   0);
-String notifChar;
-
-
-// tracking stuff
-int const notif_size = 6;
-uint32_t notifs[notif_size] = {red, yellow, green, cyan, blue, magenta};
-int tot = 0;
-int cur = 0;
-
+uint32_t blue = strip.Color(0, 0, 255);
+uint32_t red = strip.Color(255, 0, 0);
+uint32_t green = strip.Color(0, 255, 0);
+uint32_t yellow = strip.Color(255, 255, 0);
+uint32_t white = strip.Color(255, 255, 255);
+uint32_t cyan = strip.Color(0, 255, 255);
+uint32_t noColor = strip.Color(0, 0, 0);
+char notifChar = 0;
 
 void setup() {
   Serial.begin(9600);
-  
-  ultra_setup();
   
   while(!Serial); // Leonardo/Micro should wait for serial init
   Serial.println(F("Adafruit Bluefruit Low Energy nRF8001"));
@@ -62,72 +39,38 @@ void setup() {
   uart.setDeviceName("[Block]"); /* 7 characters max! */
   uart.begin();
   
+  pinMode(irSensor, INPUT);
   // NeoPixel LEDs
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
-  colorWipe(notifs[cur], 50);
-  Serial.println("setup complete");
-  tot = notif_size;
 }
 
 void loop() {
-  //colorWipe(notifs[cur], 50);
-  int swipe = readSwipe();
-  if (swipe == SWIPE_R) {
-    int old = cur;
-    cur = (cur + 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));    
-    colorWipe(notifs[cur], 50);
-  } else if (swipe == SWIPE_L) {
-    int old = cur;
-    cur = (cur - 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));
-    colorWipe(notifs[cur], 50);
-  }
-  delay(500);
+  uart.pollACI();
   displayNotif();
-  //displayNotification();
-  
-  uart.pollACI();  
+  if (notifChar == 'p')  {
+    irValue = analogRead(irSensor);
+    irValue = 255*(irValue / 1000.0);
+    potentiometerDemo(irValue);
+  }
 }
 
 // Changing LED color based on notification
 void displayNotif(){
   //rainbow(20); // idle
   theaterChase(strip.Color(127, 127, 127), 50); // White
-  if (notifChar == "f") {
+  if (notifChar == 'f') {
     colorWipe(blue, 50); // Blue
   } 
-  else if (notifChar == "l" or notifChar == "h") {
+  else if (notifChar == 'l' or notifChar == 'h') {
     colorWipe(green, 50); // Green
   }
-  else if (notifChar == "g") {
+  else if (notifChar == 'g') {
     colorAlt2(red, white, 50); // Red and White
   }
-  else if (notifChar == "m") {
+  else if (notifChar == 'm') {
     colorWipe(cyan, 50); // Cyan
   } 
-}
-
-void displayNotification() {
-  theaterChase(strip.Color(127, 127, 127), 50); // Whites
-  Serial.println("displaying notification: ");
-  Serial.println(notifChar);
-   if (notifChar.substring(notifChar.length()) == "gmail") {
-     colorAlt2(red, white, 50); // Red and White
-   }
-   if (notifChar.substring(notifChar.length()) == "hangouts") {
-     colorWipe(green, 50); // Red and White
-   }
-   
-  // OK while we still have something to read, get a character and print it out
-  Serial.print(notifChar);
 }
 
 // Mini Project Update Demo: Potentiometer (11-19-14)
@@ -172,7 +115,8 @@ void potentiometerDemo(int colorOutput) {
 */
 /**************************************************************************/
 //This function is called whenever select ACI events happen
-void aciCallback(aci_evt_opcode_t event) {
+void aciCallback(aci_evt_opcode_t event)
+{
   switch(event)
   {
     case ACI_EVT_DEVICE_STARTED:
@@ -192,16 +136,15 @@ void aciCallback(aci_evt_opcode_t event) {
 }
 
 //This function is called whenever data arrives on the RX channel
-void rxCallback(uint8_t *buffer, uint8_t len) {
+void rxCallback(uint8_t *buffer, uint8_t len)
+{
   Serial.print(F("Received "));
   Serial.print(len);
   Serial.print(F(" bytes: "));
   for(int i=0; i<len; i++) {
    Serial.print((char)buffer[i]); 
-   notifChar += ((char)buffer[i]);
+   notifChar = (char)buffer[0];
   }
-  Serial.println("Next: ");
-  Serial.println(notifChar);
   Serial.print(F(" ["));
 
   for(int i=0; i<len; i++)
@@ -334,92 +277,3 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
-
-
-
-// ####################################################################
-// ####################################################################
-// ############            ULTRASONIC STUFF                ############
-// ####################################################################
-// ####################################################################
-
-/* Setup IO pins for each of the sensors. */
-void ultra_setup() {
-  pinMode(trigR, OUTPUT);
-  pinMode(echoR,  INPUT);
-  pinMode(trigL, OUTPUT);
-  pinMode(echoL,  INPUT);
-}
-
-
-/** Returns:
- *    -1	if   no  swipe 
- *  SWIPE_R	if right swipe
- *  SWIPE_L	if  left swipe
- */
-int readSwipe() {
-  boolean detectR, detectL;
-  long read_R, last_R;
-  long read_L, last_L;
-  
-  read_R = readDuration(SWIPE_R); 
-  read_L = readDuration(SWIPE_L); 
-  detectR = read_R && (read_R < RANGE);
-  detectL = read_L && (read_L < RANGE);
-  
-  if (detectR && !detectL) {
-    while(detectR || detectL) {
-//  Serial.println("Left: \t" + String(detectL) + "\tRight:\t" + String(detectR));  
-      
-      last_R = read_R;
-      last_L = read_L;
-      read_R = readDuration(SWIPE_R);
-      read_L = readDuration(SWIPE_L);   
-      detectR = read_R && (read_R < RANGE);
-      detectL = read_L && (read_L < RANGE);
-    }
-    detectR = last_R && (last_R < RANGE);
-    detectL = last_L && (last_L < RANGE);
-    if (!detectR && detectL) {
-    Serial.println(">>>>>>>>>>>>>>>>>>>RIGHT>>>>>>>>>>>>>>>>>>>");
-      
-      return SWIPE_R;
-    }      
-  } else if (!detectR && detectL) {
-    while(detectR || detectL) {
-//  Serial.println("Left: \t" + String(detectL) + "\tRight:\t" + String(detectR));  
-      
-      last_R = read_R;
-      last_L = read_L;
-      read_R = readDuration(SWIPE_R); 
-      read_L = readDuration(SWIPE_L);   
-      detectR = read_R && (read_R < RANGE);
-      detectL = read_L && (read_L < RANGE);
-    }
-    detectR = last_R && (last_R < RANGE);
-    detectL = last_L && (last_L < RANGE);
-    if (detectR && !detectL) {
-    Serial.println("<<<<<<<<<<<<<<<<<<<<<LEFT<<<<<<<<<<<<<<<<<<<<<");
-      
-      return SWIPE_L;  
-    }
-  }
-  return -1;
-}
-
-/* Returns the reading from the @side sensor. */
-long readDuration(int side) {
-  int trig, echo;
-  if (side == SWIPE_L) {
-    trig = trigL;
-    echo = echoL;
-  } else if (side == SWIPE_R) {
-    trig = trigR;
-    echo = echoR;
-  }
-  digitalWrite(trig, LOW);
-  delayMicroseconds(5);    
-  digitalWrite(trig, HIGH);  
-  delayMicroseconds(10);  
-  return pulseIn(echo, HIGH, 10000);
-}
