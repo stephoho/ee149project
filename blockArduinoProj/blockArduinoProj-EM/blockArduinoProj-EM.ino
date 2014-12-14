@@ -4,7 +4,7 @@
 
 // pins and objecs
 #define ADAFRUITBLE_REQ 10
-#define ADAFRUITBLE_RDY 2 //add to ultra
+#define ADAFRUITBLE_RDY 0
 #define ADAFRUITBLE_RST 9
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
