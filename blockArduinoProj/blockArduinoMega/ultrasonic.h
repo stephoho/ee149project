@@ -4,7 +4,6 @@
 #include "Arduino.h"
 
 class Ultrasonic {
-
   public:
     const int SWIPE_R = 123;
     const int SWIPE_L = 456;  

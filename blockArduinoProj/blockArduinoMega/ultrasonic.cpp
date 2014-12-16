@@ -17,6 +17,7 @@ Ultrasonic::Ultrasonic() {
 // destructor 
 Ultrasonic::~Ultrasonic(){/* empty */}
 
+
 /** Returns:
  *    -1	if   no  swipe 
  *  SWIPE_R	if right swipe
@@ -65,6 +66,12 @@ long Ultrasonic::readSwipe() {
   return -1;
 }
 
+
+/** Returns:
+ *    duration of ping up to 10,000 ms
+ *  Given:
+ *    select ultrasonic sensor side
+ */
 long Ultrasonic::_readDuration(int side) {
   int trig, echo;
   if (side == SWIPE_L) {
