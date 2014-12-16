@@ -1,30 +1,29 @@
 #include <Adafruit_NeoPixel.h>
 #include <SPI.h>
-#include <Adafruit_GFX.h>   // Core graphics library
-#include <RGBmatrixPanel.h> // Hardware-specific library
 #include "Adafruit_BLE_UART.h"
 
-#include "ultrasonic.h"
-
-// pins and objects
-#define ADAFRUITBLE_REQ 49
-#define ADAFRUITBLE_RDY 21 //add to ultra 
-#define ADAFRUITBLE_RST 48
+// pins and objecs
+#define ADAFRUITBLE_REQ 10
+#define ADAFRUITBLE_RDY 2
+#define ADAFRUITBLE_RST 9
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
-// LED Display pins
-#define CLK 11 // MUST be on PORTB! (Use pin 11 on Mega)
-#define LAT A3
-#define OE  9
-#define A   A0
-#define B   A1
-#define C   A2
-RGBmatrixPanel matrix(A, B, C, CLK, LAT, OE, false);
-uint8_t r=0, g=0, b=0;
+
+// ultrasonic constants
+#define trigR 7
+#define echoR 6
+#define trigL 5
+#define echoL 4
+
+#define SWIPE_L 42
+#define SWIPE_R 43
+#define DELAY  250
+#define RANGE 1000
 
 // neopixel pins
-#define PIN 13
+#define PIN 3
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
+int irSensor = A5;
 
 // global variables
 float colorOutput = 0;
@@ -41,10 +40,8 @@ uint32_t cyan    = strip.Color(  0, 255, 255);
 uint32_t magenta = strip.Color(255,   0, 255);
 uint32_t white   = strip.Color(255, 255, 255);
 uint32_t noColor = strip.Color(  0,   0,   0);
-String notifChar = "";
+String notifChar;
 
-// ultrasonic instance
-Ultrasonic ultrasonic;
 
 // tracking stuff
 int const notif_size = 6;
@@ -55,10 +52,10 @@ int cur = 0;
 
 void setup() {
   Serial.begin(9600);
-  matrix.begin();
-
-  // Leonardo/Micro should wait for serial init    
-  while(!Serial); 
+  
+  ultra_setup();
+  
+  while(!Serial); // Leonardo/Micro should wait for serial init
   Serial.println(F("Adafruit Bluefruit Low Energy nRF8001"));
   uart.setRXcallback(rxCallback);
   uart.setACIcallback(aciCallback);
@@ -74,142 +71,149 @@ void setup() {
 }
 
 void loop() {
+  //colorWipe(notifs[cur], 50);
+  int swipe = readSwipe();
+  if (swipe == SWIPE_R) {
+    int old = cur;
+    cur = (cur + 1) % tot;
+    if (cur < 0) {
+      cur += tot;
+    }
+    Serial.println("from " + String(old) + " to " + String(cur));    
+    colorWipe(notifs[cur], 50);
+  } else if (swipe == SWIPE_L) {
+    int old = cur;
+    cur = (cur - 1) % tot;
+    if (cur < 0) {
+      cur += tot;
+    }
+    Serial.println("from " + String(old) + " to " + String(cur));
+    colorWipe(notifs[cur], 50);
+  }
+  delay(500);
+  displayNotif();
   //displayNotification();
-  testText();
-  blankScreen(1000);
-  flashNotification("GMAIL", "red", 500, 3);
-  flashNotification("gChats", "green", 500, 3);
-  flashNotification("FB", "blue", 500, 3);
-  handleSwipe();
+  
   uart.pollACI();  
 }
 
-void displayNotification() {
-  theaterChase(strip.Color(127, 0, 127), 50); // Whites
-  if (uart.available()) {
-    Serial.println("displaying notification: ");
-    Serial.println(notifChar.substring(notifChar.length()));
-    Serial.println(notifChar.length());
-    if (notifChar.substring(0, 5) == "gmail") {
-      colorAlt2(red, white, 50); // Red and White
-      flashNotification("GMAIL", "red", 500, 3);
-      drawText("GMAIL", "red");
-      blankScreen(2000);
-    }
-    else if (notifChar.substring(0, 8) == "hangouts") {
-      colorWipe(green, 50); // Red and White
-      flashNotification("GChat", "green", 500, 3);
-      drawText("GChat", "green");
-      blankScreen(2000);
-    }
-    else if (notifChar.substring(0,8) == "facebook") {
-      colorWipe(blue, 50);
-      flashNotification("FB", "blue", 500, 3);
-      drawText("FB", "blue");
-      blankScreen(2000);
-    }
-   }
-  notifChar = (String)"";
+// Changing LED color based on notification
+void displayNotif(){
+  //rainbow(20); // idle
+  theaterChase(strip.Color(127, 127, 127), 50); // White
+  if (notifChar == "f") {
+    colorWipe(blue, 50); // Blue
+  } 
+  else if (notifChar == "l" or notifChar == "h") {
+    colorWipe(green, 50); // Green
+  }
+  else if (notifChar == "g") {
+    colorAlt2(red, white, 50); // Red and White
+  }
+  else if (notifChar == "m") {
+    colorWipe(cyan, 50); // Cyan
+  } 
 }
 
-/**************************************************************************/
+void displayNotification() {
+  theaterChase(strip.Color(127, 127, 127), 50); // Whites
+  Serial.println("displaying notification: ");
+  Serial.println(notifChar);
+   if (notifChar.substring(notifChar.length()) == "gmail") {
+     colorAlt2(red, white, 50); // Red and White
+   }
+   if (notifChar.substring(notifChar.length()) == "hangouts") {
+     colorWipe(green, 50); // Red and White
+   }
+   
+  // OK while we still have something to read, get a character and print it out
+  Serial.print(notifChar);
+}
+
+// Mini Project Update Demo: Potentiometer (11-19-14)
+void potentiometerDemo(int colorOutput) {
+  // set startColor
+  if (flag == 0) {
+    startColor = colorOutput;
+    flag = 1;
+  } 
+  // initialize 1st pixel
+//  strip.setPixelColor(0, blue);
+//  strip.show();
+//  delay(wait);
+  
+  // add pixels
+  if (colorOutput > startColor & (colorOutput - startColor) >= pixelDiff) {
+    pixelDiff = colorOutput - startColor;
+    maxPixel = pixelDiff;
+    for (int i=0; i<pixelDiff; i++) {
+      if (i%2 == 0) {
+        strip.setPixelColor(i, blue);
+      } else {
+        strip.setPixelColor(i, yellow);
+      }
+      strip.show();
+      delay(wait);
+    }
+  }
+  else { // remove pixels
+    pixelDiff = colorOutput - startColor;
+    for (int i=maxPixel; i>pixelDiff; i--) {
+      strip.setPixelColor(i, noColor);
+      strip.show();
+      delay(wait);
+    }
+  }
+}
+
+/**********************************************w****************************/
 /*!
-    RGBmatrix Panel Functions
+    BLE Code (from callbackEcho)
 */
 /**************************************************************************/
-void topHalf() {
-  // Draw top half
-  for (uint8_t y=0; y < 8; y++) {      
-    for (uint8_t x=0; x < 32; x++) {  
-      matrix.drawPixel(x, y, matrix.Color333(0, 0, 5));
-    }
+//This function is called whenever select ACI events happen
+void aciCallback(aci_evt_opcode_t event) {
+  switch(event)
+  {
+    case ACI_EVT_DEVICE_STARTED:
+      Serial.println(F("Advertising started"));
+      break;
+    case ACI_EVT_CONNECTED:
+      Serial.println(F("Connected!"));
+      theaterChase(strip.Color(0, 127, 0), 50); // Green
+      break;
+    case ACI_EVT_DISCONNECTED:
+      Serial.println(F("Disconnected or advertising timed out"));
+      theaterChase(strip.Color(127, 0, 0), 50); // Green
+      break;
+    default:
+      break;
   }
 }
 
-void bottomHalf() {
-  // Draw bottom half
-  for (uint8_t y=8; y < 16; y++) {  
-    for (uint8_t x=0; x < 32; x++) {      
-      matrix.drawPixel(x, y, matrix.Color333(0, 0, 5));
-    }
+//This function is called whenever data arrives on the RX channel
+void rxCallback(uint8_t *buffer, uint8_t len) {
+  Serial.print(F("Received "));
+  Serial.print(len);
+  Serial.print(F(" bytes: "));
+  for(int i=0; i<len; i++) {
+   Serial.print((char)buffer[i]); 
+   notifChar += ((char)buffer[i]);
   }
-}
+  Serial.println("Next: ");
+  Serial.println(notifChar);
+  Serial.print(F(" ["));
 
-void flashNotification(String notification, String color, int duration, int num) {
-  for (int i=0; i<num; i++) {
-    drawText(notification, color);
-    blankScreen(duration);
+  for(int i=0; i<len; i++)
+  {
+    Serial.print(" 0x"); Serial.print((char)buffer[i], HEX); 
   }
+  Serial.println(F(" ]"));
+
+  /* Echo the same data back! */
+  uart.write(buffer, len);
 }
 
-void drawText(String notification, String color) {
-  // draw some text!
-  matrix.setCursor(2, 4);   // start at top left, with one pixel of spacing
-  matrix.setTextSize(1);    // size 1 == 8 pixels high
-  
-  for (int i = 0; i < notification.length(); i++) {
-    if (color == "red") {
-      matrix.setTextColor(matrix.Color333(7,0,0));
-    }
-    if (color == "green") {
-      matrix.setTextColor(matrix.Color333(0,7,0));
-    }
-    if (color == "blue") {
-      matrix.setTextColor(matrix.Color333(0,0,7));
-    }
-    matrix.print(notification[i]);
-  }
-}
-
-void testText() {
-  // draw some text!
-  matrix.setCursor(1, 0);   // start at top left, with one pixel of spacing
-  matrix.setTextSize(1);    // size 1 == 8 pixels high
-
-  matrix.setTextColor(matrix.Color333(7,0,0));
-  matrix.print('E');
-  matrix.setTextColor(matrix.Color333(7,4,0)); 
-  matrix.print('E');
-  matrix.setTextColor(matrix.Color333(7,7,0));
-  matrix.print('1');
-  matrix.setTextColor(matrix.Color333(4,7,0)); 
-  matrix.print('4');
-  matrix.setTextColor(matrix.Color333(0,7,0));  
-  matrix.print('9'); 
- 
-  matrix.setCursor(1, 9);   // next line
-  matrix.setTextColor(matrix.Color333(0,7,7)); 
-  matrix.print('2');
-  matrix.setTextColor(matrix.Color333(0,4,7)); 
-  matrix.print('0');
-  matrix.setTextColor(matrix.Color333(0,0,7));
-  matrix.print('1');
-  matrix.setTextColor(matrix.Color333(4,0,7)); 
-  matrix.print("4");
-//  matrix.setTextColor(matrix.Color333(7,0,4)); 
-//  matrix.print("*");
-}
-
-void fillRect() {
-  matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 0, 0));
-}
-
-void drawIcons() {
-  for (uint8_t y=5; y < 11; y++) {
-    matrix.drawPixel(2, y, matrix.Color333(0, 0, 5));
-    matrix.drawPixel(7, y, matrix.Color333(0, 0, 5));
-  }
-  for (uint8_t x=2; x < 7; x++) {
-    matrix.drawPixel(x, 5, matrix.Color333(0, 0, 5));
-    matrix.drawPixel(x, 10, matrix.Color333(0, 0, 5));
-  }
-}
-
-void blankScreen(int ms) {
-  delay(ms);
-  matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 0, 0));
-  delay(ms);
-}
 
 /**************************************************************************/
 /*!
@@ -330,6 +334,9 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
+
+
+
 // ####################################################################
 // ####################################################################
 // ############            ULTRASONIC STUFF                ############
@@ -415,77 +422,4 @@ long readDuration(int side) {
   digitalWrite(trig, HIGH);  
   delayMicroseconds(10);  
   return pulseIn(echo, HIGH, 10000);
-}
-
-/**********************************************w****************************/
-/*!
-    BLE Code (from callbackEcho)
-*/
-/**************************************************************************/
-//This function is called whenever select ACI events happen
-void aciCallback(aci_evt_opcode_t event) {
-  switch(event)
-  {
-    case ACI_EVT_DEVICE_STARTED:
-      Serial.println(F("Advertising started"));
-      break;
-    case ACI_EVT_CONNECTED:
-      Serial.println(F("Connected!"));
-      theaterChase(strip.Color(0, 127, 0), 50); // Green
-      break;
-    case ACI_EVT_DISCONNECTED:
-      Serial.println(F("Disconnected or advertising timed out"));
-      theaterChase(strip.Color(127, 0, 0), 50); // Green
-      break;
-    default:
-      break;
-  }
-}
-
-//This function is called whenever data arrives on the RX channel
-void rxCallback(uint8_t *buffer, uint8_t len) {
-  Serial.print(F("Received "));
-  Serial.print(len);
-  Serial.print(F(" bytes: "));
-  for(int i=0; i<len; i++) {
-   Serial.print((char)buffer[i]); 
-   notifChar += ((char)buffer[i]);
-  }
-  Serial.println("");
-  Serial.print("Next: ");
-  Serial.println(notifChar);
-  
-//  Serial.print(F(" ["));
-//  for(int i=0; i<len; i++)
-//  {
-//    Serial.print(" 0x"); Serial.print((char)buffer[i], HEX); 
-//  }
-//  Serial.println(F(" ]"));
-  /* Echo the same data back! */
-//  uart.write(buffer, len);
-
-  Serial.println("end of rxCallback function!");
-}
-
-// Check if a gesture was made; if so, take an action.
-void handleSwipe() {
-  int swipe = ultrasonic.readSwipe();
-  if (swipe == SWIPE_R) {
-    int old = cur;
-    cur = (cur + 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));    
-    colorWipe(notifs[cur], 50);
-  } else if (swipe == SWIPE_L) {
-    int old = cur;
-    cur = (cur - 1) % tot;
-    if (cur < 0) {
-      cur += tot;
-    }
-    Serial.println("from " + String(old) + " to " + String(cur));
-    colorWipe(notifs[cur], 50);
-  }
-  delay(500);  
 }
