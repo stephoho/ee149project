@@ -34,7 +34,6 @@ public class BlockActivity extends Activity {
     private TextView tvConnectionState;
     private TextView tvDataField;
     private Button btnConnectionToggle;
-    private Button btnSendColor;
     private NotificationAdapter adapterNotifs;
 
     private String deviceName;
@@ -119,7 +118,6 @@ public class BlockActivity extends Activity {
 
         // set up views
         btnConnectionToggle = (Button) findViewById(R.id.btnConnectionToggle);
-        btnSendColor = (Button) findViewById(R.id.btnSendColor);
         tvDeviceName = (TextView) findViewById(R.id.tvDeviceName);
         tvConnectionState = (TextView) findViewById(R.id.tvConnectionState);
         tvDataField = (TextView) findViewById(R.id.tvDataField);

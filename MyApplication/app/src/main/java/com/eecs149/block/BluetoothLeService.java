@@ -276,7 +276,6 @@ public class BluetoothLeService extends Service {
      * @param characteristic The characteristic to write to
      */
     public void writeCharacteristic(BluetoothGattCharacteristic characteristic) {
-        Log.i(ActivityUtils.APP_TAG, "### INSIDE WRITECHARACTERISTIC");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
@@ -294,19 +293,16 @@ public class BluetoothLeService extends Service {
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
                                               boolean enabled) {
 
-        Log.i(ActivityUtils.APP_TAG, "### INSIDE setCharacteristicNotification");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
 
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
-        Log.i(ActivityUtils.APP_TAG, "### set setCharacteristicNotification");
         if (UUID_nRF_TX.equals(characteristic.getUuid())) {
-            Log.i(ActivityUtils.APP_TAG, "### inside if statement setCharacteristicNotification");
 
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                    UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+                    GattAttributes.UART_SERVICE);
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
         }

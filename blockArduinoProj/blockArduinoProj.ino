@@ -4,7 +4,7 @@
 #include <RGBmatrixPanel.h> // Hardware-specific library
 #include "Adafruit_BLE_UART.h"
 
-// pins and objecs
+// pins and objects
 #define ADAFRUITBLE_REQ 10
 #define ADAFRUITBLE_RDY 2 //add to ultra
 #define ADAFRUITBLE_RST 9
@@ -110,6 +110,8 @@ void displayNotification() {
     else if (notifChar.substring(0,8) == "facebook") {
       colorWipe(blue, 50);
     }
+    else if (notifChar.substring(0,8) == "snapshat") {
+      colorWipe(yellow,50);
    }
   notifChar = (String)"";
 }
