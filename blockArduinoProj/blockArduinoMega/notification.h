@@ -3,21 +3,15 @@
 
 #include "Arduino.h"
 
-"appname; <0, 1>; [RGB, RGB, ...]"
-class Notification {
+struct Notification {
+  char* name;
+  uint32_t colors[2];
 
-  public:
-     Notification(int id, uint32_t[] colors);
-    ~Notification();
-
-    int id;
-    uint32_t[] colors;
-
-    long readSwipe();
-
-    
-  private:
+  bool operator==(Notification notif) const {
+    return !strcmp(name, notif.name);
+  }
 
 };
 
 #endif
+

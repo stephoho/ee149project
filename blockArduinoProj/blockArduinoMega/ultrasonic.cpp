@@ -6,6 +6,7 @@
 #define trigL 38
 #define echoL 40
 
+// constructor
 Ultrasonic::Ultrasonic() {
   pinMode(trigR, OUTPUT);
   pinMode(echoR,  INPUT);
@@ -13,8 +14,14 @@ Ultrasonic::Ultrasonic() {
   pinMode(echoL,  INPUT);
 }
 
-Ultrasonic::~Ultrasonic(){}
+// destructor 
+Ultrasonic::~Ultrasonic(){/* empty */}
 
+/** Returns:
+ *    -1	if   no  swipe 
+ *  SWIPE_R	if right swipe
+ *  SWIPE_L	if  left swipe
+ */
 long Ultrasonic::readSwipe() {
   boolean detectR, detectL;
   long read_R, last_R;
@@ -24,6 +31,7 @@ long Ultrasonic::readSwipe() {
   read_L = _readDuration(SWIPE_L); 
   detectR = read_R && (read_R < RANGE);
   detectL = read_L && (read_L < RANGE);
+  //Serial.println(read_R);
   
   if (detectR && !detectL) {
     while(detectR || detectL) {

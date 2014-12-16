@@ -1,0 +1,4 @@
+Ultrasonic   KEYWORD1
+readSwipe    KEYWORD2
+SWIPE_R      LITERAL1
+SWIPE_L      LITERAL1

@@ -5,6 +5,7 @@
 #include "Adafruit_BLE_UART.h"
 
 #include "ultrasonic.h"
+#include "notification.h"
 
 // pins and objects
 #define ADAFRUITBLE_REQ 49
@@ -46,6 +47,14 @@ String notifChar = "";
 // ultrasonic instance
 Ultrasonic ultrasonic;
 
+// notification array and values
+/*struct Notification notifications[10];
+struct Notification face = {"facebook", {blue, white}};
+struct Notification line = {"line",     {green, white}};
+struct Notification hang = {"hangouts", {green}};
+struct Notification msgr = {"messenger",{cyan, white}};*/
+
+
 // tracking stuff
 int const notif_size = 6;
 uint32_t notifs[notif_size] = {red, yellow, green, cyan, blue, magenta};
@@ -74,18 +83,18 @@ void setup() {
 }
 
 void loop() {
-  //displayNotification();
-  testText();
-  blankScreen(1000);
-  flashNotification("GMAIL", "red", 500, 3);
-  flashNotification("gChats", "green", 500, 3);
-  flashNotification("FB", "blue", 500, 3);
+  displayNotification();
+  //testText();
+  //blankScreen(1000);
+  //flashNotification("GMAIL", "red", 500, 3);
+  //flashNotification("gChats", "green", 500, 3);
+  //flashNotification("FB", "blue", 500, 3);
   handleSwipe();
   uart.pollACI();  
 }
 
 void displayNotification() {
-  theaterChase(strip.Color(127, 0, 127), 50); // Whites
+  //theaterChase(strip.Color(127, 0, 127), 50); // Whites
   if (uart.available()) {
     Serial.println("displaying notification: ");
     Serial.println(notifChar.substring(notifChar.length()));
@@ -330,94 +339,8 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
-// ####################################################################
-// ####################################################################
-// ############            ULTRASONIC STUFF                ############
-// ####################################################################
-// ####################################################################
 
-/* Setup IO pins for each of the sensors. */
-void ultra_setup() {
-  pinMode(trigR, OUTPUT);
-  pinMode(echoR,  INPUT);
-  pinMode(trigL, OUTPUT);
-  pinMode(echoL,  INPUT);
-}
-
-
-/** Returns:
- *    -1	if   no  swipe 
- *  SWIPE_R	if right swipe
- *  SWIPE_L	if  left swipe
- */
-int readSwipe() {
-  boolean detectR, detectL;
-  long read_R, last_R;
-  long read_L, last_L;
-  
-  read_R = readDuration(SWIPE_R); 
-  read_L = readDuration(SWIPE_L); 
-  detectR = read_R && (read_R < RANGE);
-  detectL = read_L && (read_L < RANGE);
-  
-  if (detectR && !detectL) {
-    while(detectR || detectL) {
-//  Serial.println("Left: \t" + String(detectL) + "\tRight:\t" + String(detectR));  
-      
-      last_R = read_R;
-      last_L = read_L;
-      read_R = readDuration(SWIPE_R);
-      read_L = readDuration(SWIPE_L);   
-      detectR = read_R && (read_R < RANGE);
-      detectL = read_L && (read_L < RANGE);
-    }
-    detectR = last_R && (last_R < RANGE);
-    detectL = last_L && (last_L < RANGE);
-    if (!detectR && detectL) {
-    Serial.println(">>>>>>>>>>>>>>>>>>>RIGHT>>>>>>>>>>>>>>>>>>>");
-      
-      return SWIPE_R;
-    }      
-  } else if (!detectR && detectL) {
-    while(detectR || detectL) {
-//  Serial.println("Left: \t" + String(detectL) + "\tRight:\t" + String(detectR));  
-      
-      last_R = read_R;
-      last_L = read_L;
-      read_R = readDuration(SWIPE_R); 
-      read_L = readDuration(SWIPE_L);   
-      detectR = read_R && (read_R < RANGE);
-      detectL = read_L && (read_L < RANGE);
-    }
-    detectR = last_R && (last_R < RANGE);
-    detectL = last_L && (last_L < RANGE);
-    if (detectR && !detectL) {
-    Serial.println("<<<<<<<<<<<<<<<<<<<<<LEFT<<<<<<<<<<<<<<<<<<<<<");
-      
-      return SWIPE_L;  
-    }
-  }
-  return -1;
-}
-
-/* Returns the reading from the @side sensor. */
-long readDuration(int side) {
-  int trig, echo;
-  if (side == SWIPE_L) {
-    trig = trigL;
-    echo = echoL;
-  } else if (side == SWIPE_R) {
-    trig = trigR;
-    echo = echoR;
-  }
-  digitalWrite(trig, LOW);
-  delayMicroseconds(5);    
-  digitalWrite(trig, HIGH);  
-  delayMicroseconds(10);  
-  return pulseIn(echo, HIGH, 10000);
-}
-
-/**********************************************w****************************/
+/**************************************************************************/
 /*!
     BLE Code (from callbackEcho)
 */
@@ -470,22 +393,27 @@ void rxCallback(uint8_t *buffer, uint8_t len) {
 // Check if a gesture was made; if so, take an action.
 void handleSwipe() {
   int swipe = ultrasonic.readSwipe();
-  if (swipe == SWIPE_R) {
+  Serial.println("swipe: "  + String(swipe));
+  if (swipe == ultrasonic.SWIPE_R) {
     int old = cur;
     cur = (cur + 1) % tot;
     if (cur < 0) {
       cur += tot;
     }
-    Serial.println("from " + String(old) + " to " + String(cur));    
-    colorWipe(notifs[cur], 50);
-  } else if (swipe == SWIPE_L) {
+    Serial.println("from " + String(old) + " to " + String(cur));
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 7, 0)); 
+  colorWipe(notifs[cur], 50);
+      delay(500);  
+  } else if (swipe == ultrasonic.SWIPE_L) {
     int old = cur;
     cur = (cur - 1) % tot;
     if (cur < 0) {
       cur += tot;
     }
     Serial.println("from " + String(old) + " to " + String(cur));
+    matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 0, 7));    
     colorWipe(notifs[cur], 50);
-  }
   delay(500);  
+  }
+
 }
