@@ -20,7 +20,7 @@
         android:adjustViewBounds="true"
         android:padding="8dp"
         android:scaleType="centerInside"
-        android:src="@drawable/title_placeholder" />
+        android:src="@drawable/block_title" />
 
     <TextView
         android:id="@+id/tvDeviceName"

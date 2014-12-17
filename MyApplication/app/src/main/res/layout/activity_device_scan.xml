@@ -17,20 +17,31 @@
         android:adjustViewBounds="true"
         android:padding="8dp"
         android:scaleType="centerInside"
-        android:src="@drawable/title_placeholder" />
+        android:src="@drawable/block_title" />
 
-    <Button
-        android:id="@+id/btnSkipToGrabber"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvConnectInstructions"
+        android:paddingTop="8dp"
+        android:paddingBottom="5dp"
+        android:textSize="20dp"
+        android:gravity="center_horizontal"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ivBlockScanLogo"
-        android:onClick="goToNotifications"
-        android:text="Go to Notifications" />
+        android:layout_below="@id/ivBlockScanLogo"
+        android:text="@string/select_device" />
+
+    <View
+        android:id="@+id/vBreak"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:paddingBottom="5dp"
+        android:layout_below="@id/tvConnectInstructions"
+        android:background="@android:color/darker_gray" />
 
     <ListView
         android:id="@+id/lvDevicesFound"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btnSkipToGrabber" />
+        android:layout_below="@id/vBreak" />
 
 </RelativeLayout>
