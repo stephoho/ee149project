@@ -33,6 +33,7 @@ int flag = 0;
 int pixelDiff = 0;
 int maxPixel = 0;
 int wait = 10;
+int introFlag = 0;
 uint32_t blue    = strip.Color(  0,   0, 255);
 uint32_t red     = strip.Color(255,   0,   0);
 uint32_t green   = strip.Color(  0, 255,   0);
@@ -95,6 +96,10 @@ void setup() {
 }
 
 void loop() {
+  if (introFlag == 0) {
+    demoIntroduction();
+    introFlag = 1;
+  }
   uart.pollACI();  
   handleSwipe();  
   handleNotification();
@@ -219,6 +224,65 @@ void blankScreen() {
   matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 0, 0));
 }
 
+void demoIntroduction() {
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 0, 0));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 4, 0));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 7, 0));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(4, 7, 0));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 7, 0));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 4, 7));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(0, 0, 7));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(4, 0, 7));
+  delay(500);
+  matrix.fillRect(0, 0, 32, 16, matrix.Color333(7, 0, 4));
+  delay(500);
+  blankScreen();
+  delay(500);
+  
+  // draw some text!
+  matrix.setCursor(1, 0);   // start at top left, with one pixel of spacing
+  matrix.setTextSize(1);    // size 1 == 8 pixels high
+  // print each letter with a rainbow color
+  matrix.setTextColor(matrix.Color333(7,0,0));
+  matrix.print('E');
+  matrix.setTextColor(matrix.Color333(7,4,0)); 
+  matrix.print('E');
+  matrix.setTextColor(matrix.Color333(7,7,0));
+  matrix.print('1');
+  matrix.setTextColor(matrix.Color333(4,7,0)); 
+  matrix.print('4');
+  matrix.setTextColor(matrix.Color333(0,7,0));  
+  matrix.print('9');
+  matrix.setCursor(1, 9);   // next line
+  matrix.setTextColor(matrix.Color333(0,4,7)); 
+  matrix.print('2');
+  matrix.setTextColor(matrix.Color333(0,0,7));
+  matrix.print('0');
+  matrix.setTextColor(matrix.Color333(4,0,7)); 
+  matrix.print("1");
+  matrix.setTextColor(matrix.Color333(7,0,4)); 
+  matrix.print("4");
+  delay(3000);
+  
+  drawText("This", matrix.Color333(4,0,7));
+  delay(600);
+  drawText("is", matrix.Color333(4,0,7));
+  delay(600);
+  blankScreen();
+  delay(600);
+
+  drawText("BLOCK", matrix.Color333(0,4,7));
+  delay(3000);
+  blankScreen();
+  delay(1000);
+}
 /**************************************************************************/
 /*!
     NeoPixel Functions (Modified from Example)
