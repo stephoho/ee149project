@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -17,13 +18,13 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.koushikdutta.async.util.Charsets;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+import org.joda.time.Minutes;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 
@@ -95,9 +96,11 @@ public class BlockActivity extends Activity {
                 invalidateOptionsMenu();
             } else if (ActivityUtils.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 Log.i(ActivityUtils.APP_TAG, "=== GATT SERVICE DISCOVERED");
-
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(btleService.getSupportedGattServices());
+
+                // send device name and seed time (minutes)
+                sendInitial();
             } else if (ActivityUtils.ACTION_DATA_AVAILABLE.equals(action)) {
                 Log.i(ActivityUtils.APP_TAG, "=== GATT DATA AVAILABLE");
 //                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
@@ -180,7 +183,6 @@ public class BlockActivity extends Activity {
     }
 
 
-
     class NotificationReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -207,7 +209,7 @@ public class BlockActivity extends Activity {
         }
     }
 
-    private void sendToBlock(Intent nlsIntent){
+    private void sendToBlock(Intent nlsIntent) {
         String msg = makeDatagram(nlsIntent);
         System.out.println("#### SENDING: " + msg);
         byte[] tx = null;
@@ -224,18 +226,61 @@ public class BlockActivity extends Activity {
         }
     }
 
+
+    private void sendInitial() {
+        String deviceName = getDeviceName();
+        LocalDateTime now = new LocalDateTime();
+        int minutesFromMidnight = Minutes.minutesBetween(now.withMillisOfDay(0),
+                LocalDateTime.now()).getMinutes();
+        String msg=  deviceName + ":" + minutesFromMidnight;
+        byte[] tx = null;
+        try {
+            tx = msg.getBytes("US-ASCII");
+        } catch (Exception e) {
+            Log.d(ActivityUtils.APP_TAG, "THIS THING SUCKS OR YOU MESSED UP");
+        }
+        if (connected) {
+            characteristicTX.setValue(tx);
+            tvDataField.setText("SENT: " + msg);
+            btleService.writeCharacteristic(characteristicTX);
+            btleService.setCharacteristicNotification(characteristicRX, true);
+        }
+
+    }
+
+    public String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        } else {
+            return capitalize(manufacturer) + " " + model;
+        }
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.length() == 0) {
+            return "";
+        }
+        char first = s.charAt(0);
+        if (Character.isUpperCase(first)) {
+            return s;
+        } else {
+            return Character.toUpperCase(first) + s.substring(1);
+        }
+    }
+
     private String makeDatagram(Intent nlsIntent) {
         String pckg = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
         String app = BlockNotification.getShortName(pckg);
         String actionType = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE);
-        String action = "post";
-        if (actionType.contains(POST)) {
+        String action = "";
+        if (actionType.equals((NLService.NLS_POST))) {
             action = POST;
-        } else if (actionType.contains(REMOVE)){
+        } else if (actionType.equals((NLService.NLS_REMOVE))) {
             action = REMOVE;
         }
         return app + ";" + action;
-
     }
 
 

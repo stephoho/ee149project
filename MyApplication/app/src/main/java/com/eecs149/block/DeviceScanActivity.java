@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -40,6 +42,7 @@ public class DeviceScanActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         getSupportActionBar().setTitle(R.string.title_devices);
         getSupportActionBar().setIcon(R.drawable.ic_launcher);
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1AB0E6")));
         setContentView(R.layout.activity_device_scan);
         mHandler = new Handler();
 
