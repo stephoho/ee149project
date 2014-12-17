@@ -17,13 +17,9 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.koushikdutta.async.util.Charsets;
-
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 
@@ -180,7 +176,6 @@ public class BlockActivity extends Activity {
     }
 
 
-
     class NotificationReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -207,7 +202,7 @@ public class BlockActivity extends Activity {
         }
     }
 
-    private void sendToBlock(Intent nlsIntent){
+    private void sendToBlock(Intent nlsIntent) {
         String msg = makeDatagram(nlsIntent);
         System.out.println("#### SENDING: " + msg);
         byte[] tx = null;
@@ -228,10 +223,10 @@ public class BlockActivity extends Activity {
         String pckg = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_PACKAGE_NAME);
         String app = BlockNotification.getShortName(pckg);
         String actionType = nlsIntent.getStringExtra(ActivityUtils.EXTRA_NOTIF_ACTION_TYPE);
-        String action = "post";
-        if (actionType.contains(POST)) {
+        String action = "";
+        if (actionType.equals((NLService.NLS_POST))) {
             action = POST;
-        } else if (actionType.contains(REMOVE)){
+        } else if (actionType.equals((NLService.NLS_REMOVE))) {
             action = REMOVE;
         }
         return app + ";" + action;
