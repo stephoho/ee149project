@@ -35,6 +35,8 @@ long Ultrasonic::readSwipe() {
   
   if (detectR && !detectL) {
     while(detectR || detectL) {
+      Serial.println(millis());
+      Serial.println("left: "  + String(read_L) + "\tright: " + String(read_R));
       last_R = read_R;
       last_L = read_L;
       read_R = _readDuration(SWIPE_R);
@@ -49,6 +51,7 @@ long Ultrasonic::readSwipe() {
     }      
   } else if (!detectR && detectL) {
     while(detectR || detectL) {
+      Serial.println("left: "  + String(read_L) + "\tright: " + String(read_R));
       last_R = read_R;
       last_L = read_L;
       read_R = _readDuration(SWIPE_R); 

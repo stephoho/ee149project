@@ -24,7 +24,7 @@ uint8_t r=0, g=0, b=0;
 
 // neopixel pins
 #define PIN 13
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
 
 // global variables
 float colorOutput = 0;
@@ -43,9 +43,6 @@ uint32_t white   = strip.Color(255, 255, 255);
 uint32_t noColor = strip.Color(  0,   0,   0);
 String notifChar = "";
 
-
-
-
 // ultrasonic instance
 Ultrasonic ultrasonic;
 
@@ -58,14 +55,14 @@ typedef struct Notification {
     return name == notif.name;
   }
 } Notification;
-static const Notification face = {"FaceB", {blue}};
+static const Notification face = {"facebook", {blue}};
 static const Notification line = {"line",     {green, white}};
-static const Notification msgr = {"msngr",{cyan, white}};
+static const Notification msgr = {"messenger",{cyan, white}};
 static const Notification mail = {"gmail",    {red, white}};
-static const Notification hang = {"gchat", {green}};
-static const Notification snap = {"snapC", {yellow}};
-static const Notification other ={"other",    {white}};
-static const Notification empty ={"", {noColor}};
+static const Notification hang = {"hangouts", {green}};
+static const Notification snap = {"snapchat", {yellow}};
+static const Notification other = {"other",    {white}};
+static const Notification empty = {"", {noColor}};
 
 int const notif_size = 10;
 Notification notifications[notif_size];
@@ -108,7 +105,7 @@ void handleNotification() {
         split = notifChar.indexOf(":");
         String device = notifChar.substring(0, split);
         base_time = notifChar.substring(split + 1).toInt();
-	drawText(device, white);
+	drawText(device, "blue");
 	delay(2000);
         drawTimeIfIdle();
         notifChar = "";
@@ -168,14 +165,8 @@ void handleNotification() {
 
 void displayNotification() {
   Notification notif = notifications[current];
-  if (notif.name == "line" || notif.name == "gchat") {
-      drawText(notif.name, matrix.Color333(0, 7, 0));
-  } else if (notif.name == "gmail") {
-      drawText(notif.name, matrix.Color333(7, 0, 0));
-  } else {
-    drawText(notif.name, notif.colors[0]);
-  }
-  colorAlt2(notif.colors[0], notif.colors[1], 50);
+  drawText(notif.name, "red");
+  colorWipe(notif.colors[0], 50);
 }
 
 /**************************************************************************/
@@ -184,7 +175,14 @@ void displayNotification() {
 */
 /**************************************************************************/
 
-void drawText(String notification, uint16_t color) {
+void flashNotification(String notification, String color, int duration, int num) {
+  for (int i=0; i<num; i++) {
+    drawText(notification, color);
+    blankScreen();
+  }
+}
+
+void drawText(String notification, String color) {
   if (string == notification) {
     return;
   }
@@ -195,7 +193,15 @@ void drawText(String notification, uint16_t color) {
   matrix.setTextSize(1);    // size 1 == 8 pixels high
   
   for (int i = 0; i < notification.length(); i++) {
-    matrix.setTextColor(color);
+    if (color == "red") {
+      matrix.setTextColor(matrix.Color333(7,0,0));
+    }
+    if (color == "green") {
+      matrix.setTextColor(matrix.Color333(0,7,0));
+    }
+    if (color == "blue") {
+      matrix.setTextColor(matrix.Color333(0,0,7));
+    }
     matrix.print(notification[i]);
   }
 }
@@ -415,9 +421,7 @@ void handleSwipe() {
  
 int existingApp(String name) {
   for (int i = 0; i < total; i++) {
-    String letter = notifications[i].name.substring(0, 1);
-    letter.toLowerCase();
-    if (letter == name.substring(0, 1)) {
+    if (notifications[i].name == name) {
       return i;
     }
   } 
@@ -427,18 +431,18 @@ int existingApp(String name) {
 void drawTimeIfIdle() {
   if (total == 0) {
     String time = "";
-    int hours = ((base_time / 60) + millis() /3600000)%24;
+    int hours = (base_time / 60) + millis() /3600000;
     if (hours < 10) {
-      time = "0" + String(hours);   
+      time = "0" + String(hours);
     } else {
       time = String(hours);
     }
-    int minutes = ((base_time % 60) + (millis() % 3600000)/60000)%60;
+    int minutes = (base_time % 60) + (millis() % 3600000)/60000;
     if (minutes < 10) {
       time += ":0" + String(minutes);
     } else {
       time += ":" + String(minutes);
     }
-    drawText(time, white);
+    drawText(time, "green");
   }
 }
