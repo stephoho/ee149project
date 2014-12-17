@@ -44,10 +44,10 @@ public class BlockNotification {
     }
 
     public static String getShortName(String input) {
-        if (input.contains("facebook")) {
+        if (input.contains("com.facebook.katana")) {
             return "facebook";
         } else if (input.contains("com.facebook.orca")) {
-            return "fbmessenger";
+            return "messenger";
         } else if (input.contains("com.google.android.gm")) {
             return "gmail";
         } else if (input.contains("com.google.android.talk")) {
